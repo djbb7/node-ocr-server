@@ -2,12 +2,14 @@ import https from 'https';
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
+import mongoose from 'mongoose';
 import config from './config.json';
 import fs from 'fs';
 import users from './api/users';
 import ocr from './api/ocr';
 import history from './api/history';
 import { version } from '../package.json';
+
 
 
 const options = {
@@ -23,7 +25,10 @@ app.use(bodyParser.json({
 	limit : config.bodyLimit
 }));
 
-// TODO: initialize DB and pass object as param
+
+mongoose.Promise = global.Promise;
+mongoose.connect(config.database); // connect to database
+
 app.use('/users', users( { config } ) );
 
 app.use('/ocr', ocr( { config } ) );
