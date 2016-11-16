@@ -1,8 +1,15 @@
 import { Router } from 'express';
-import	mongoose	from 'mongoose';
-import	jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
+import crypto from 'crypto';
 
 export default ({ config }) => {
+
+	const secret = 'supersecret';
+
+	function randomToken () {
+		return crypto.randomBytes(24).toString('hex');
+	}
+
 	let api = Router();
 
 	api.get( '/setup', function( req, res ) {
@@ -18,41 +25,58 @@ export default ({ config }) => {
 			if (err) throw err;
 
 			console.log('User saved successfully');
+		});
+
+		var harry = new User({
+			username: 'harry',
+			password: 'potter'
+		});
+
+		harry.save(function(err) {
+			if (err) throw err;
+
 			res.json({ success: true });
 		});
 	});
 
-	api.post( '/login', function( req, res ) {
+	api.post( '/login', ( req, res, next )  => {
+		if (!req.body.username || !req.body.password){
+			next({code: 400, message: 'Username of password missing.'});
+		}
+		next();
+	}).use( ( req, res, next ) => {
 		User.findOne({
-			username: req.body.username
-		}, function(err, user) {
+				username: req.body.username
+			}, function(err, user) {
 
-			if (err) throw err;
-
-			if (!user) {
-				res.json({ success: false, message: 'Authentication failed. User not found.' });
-			} else if (user) {
-
-				// check if password matches
-				if (user.password != req.body.password) {
-					res.json({ success: false, message: 'Authentication failed. Wrong password.' });
-				} else {
-					// if user is found and password is right
-					// create a token
-					var token = jwt.sign(user, 'secret', {
-						expiresIn: 1440 // expires in 24 hours
-					});
-
-					// return the information including token as JSON
-					res.json({
-						success: true,
-						message: 'Enjoy your token!',
-						token: token
-					});
+				if (err) {
+					return next({code: 400, message: err});
 				}
-			}
+
+				if (!user || user.password !== req.body.password) {
+					return next({ code: 404, message: 'Authentication failed.' });
+				}
+
+				// create a token
+				var token = randomToken();
+
+				// TODO: save token to DB
+
+				// return the information including token as JSON
+				res.json({
+					success: true,
+					message: 'Enjoy your token!',
+					token: token
+			});
 		});
- });
+ }).use((err, req, res, next) => res.status(err.code).json(err));
+
+	api.post( '/logout', function( req, res ) {
+
+			// TODO: check token is in DB
+
+			// TODO: delete token from DB
+	});
 
 	return api;
 }
