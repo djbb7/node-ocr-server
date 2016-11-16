@@ -23,7 +23,6 @@
     "foreman": "2.0.0",
     "fs": "0.0.1-security",
     "https": "^1.0.0",
-    "jsonwebtoken": "^7.1.9",
     "mongoose": "^4.6.7"
   }
 }
