@@ -10,8 +10,6 @@ import ocr from './api/ocr';
 import history from './api/history';
 import { version } from '../package.json';
 
-
-
 const options = {
 	key: fs.readFileSync(__dirname + '/../ssl/key.pem'),
 	cert: fs.readFileSync(__dirname + '/../ssl/cert.pem')
