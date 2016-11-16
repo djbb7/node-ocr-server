@@ -23,6 +23,7 @@
     "foreman": "2.0.0",
     "fs": "0.0.1-security",
     "https": "^1.0.0",
-    "mongoose": "^4.6.7"
+    "mongoose": "^4.6.7",
+    "multer": "^1.2.0"
   }
 }
