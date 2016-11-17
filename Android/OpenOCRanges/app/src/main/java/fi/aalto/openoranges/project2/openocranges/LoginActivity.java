@@ -191,7 +191,7 @@ public class LoginActivity extends AppCompatActivity {
 
             String login_body = "{\"username\":\"" + mUsername + "\",\"password\":\"" + mPassword + "\"}";
             String login = "users/login";
-            String server_url = getString(R.string.server);
+            //String server_url = getString(R.string.server);
             try {
                 //requests server to approve username/password
                 //  Response response = post(server_url + login, login_body);
