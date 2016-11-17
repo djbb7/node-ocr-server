@@ -1,0 +1,3 @@
+<resources>
+    <string name="server">https://mccg15.herokuapp.com/</string>
+</resources>
