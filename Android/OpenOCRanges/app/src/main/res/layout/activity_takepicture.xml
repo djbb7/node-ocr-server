@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context="fi.aalto.openoranges.project2.openocranges.TakePictureActivity">
+
+    <FrameLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".TakePictureActivity">
+
+        <android.support.design.widget.AppBarLayout
+            android:id="@+id/AppBar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/colorPrimary"
+            android:theme="@style/AppTheme.AppBarOverlay">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="horizontal">
+
+                <ImageButton
+                    android:id="@+id/mBack"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:background="@null"
+                    android:src="@drawable/back_white"
+                    android:padding="20dp"/>
+
+                <TextView
+                    android:id="@+id/modus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:textSize="24dp"
+                    android:layout_marginLeft="10dp"
+                    android:gravity="center_vertical"
+                    android:textColor="#FFFFFF" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    />
+
+                <ImageButton
+                    android:id="@+id/ocrOptions1"
+                    android:src="@drawable/options_white"
+                    android:showAsAction="ifRoom"
+                    android:background="@null"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginRight="10dp"
+                    android:layout_gravity="right"
+                    />
+
+            </LinearLayout>
+
+        </android.support.design.widget.AppBarLayout>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/takePicture"
+            android:layout_width="78dp"
+            android:layout_height="77dp"
+            android:layout_margin="@dimen/fab_margin"
+            app:layout_anchorGravity="center"
+            app:backgroundTint="#FB8C00"
+            android:src="@mipmap/icon_ocranges"
+            android:layout_gravity="bottom|center"/>
+
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/ocrOptions"
+            android:layout_width="55dp"
+            android:layout_height="54dp"
+            android:layout_margin="@dimen/fab_margin"
+            app:layout_anchorGravity="center"
+            app:backgroundTint="#EF6C00"
+            android:src="@drawable/options_white"
+            android:layout_gravity="bottom|right"
+            app:srcCompat="@drawable/options_white"
+            android:onClick="showOptions"/>
+
+        <FrameLayout
+            android:id="@+id/camera_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        </FrameLayout>
+
+
+    </FrameLayout>
+
+
+
+
+</android.support.design.widget.CoordinatorLayout>

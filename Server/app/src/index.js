@@ -9,8 +9,7 @@ import users from './api/users';
 import ocr from './api/ocr';
 import history from './api/history';
 import { version } from '../package.json';
-
-
+import multer from 'multer';
 
 const options = {
 	key: fs.readFileSync(__dirname + '/../ssl/key.pem'),
@@ -25,13 +24,17 @@ app.use(bodyParser.json({
 	limit : config.bodyLimit
 }));
 
+let memoryStorage = multer.memoryStorage();
+let upload = multer({
+	storage : memoryStorage
+});
 
 mongoose.Promise = global.Promise;
 mongoose.connect(config.database); // connect to database
 
 app.use('/users', users( { config } ) );
 
-app.use('/ocr', ocr( { config } ) );
+app.use('/ocr', ocr( { config }, upload ) );
 
 app.use('/history', history( { config } ) );
 
