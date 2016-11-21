@@ -45,10 +45,8 @@ public class TakePictureActivity extends AppCompatActivity{
     private TextView mModus;
     private int MY_PERMISSIONS_REQUEST_CAMERA;
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE;
-    private File mPictureFile;
+    private Uri mPictureUri;
     private String mOcrOption = "Remote";
-    //private static final int REQUEST_TAKE_PHOTO = 1;
-    //private String mCurrentPhotoPath;
     private static final String TAG = "TakePictureActivity";
 
     public static final int MEDIA_TYPE_IMAGE = 1;
@@ -77,11 +75,6 @@ public class TakePictureActivity extends AppCompatActivity{
             @Override
             public void onClick(View view) {
                 mCamera.takePicture(null, null, mPicture);
-                Intent i = new Intent(TakePictureActivity.this, ProcessOcrActivity.class);
-                i.putExtra("mPictureFile", mPictureFile);
-                i.putExtra("mModus", mOcrOption);
-                startActivity(i);
-                finish();
             }
         });
         mTakePicture.bringToFront();
@@ -141,14 +134,15 @@ public class TakePictureActivity extends AppCompatActivity{
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
 
-            mPictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
-            if (mPictureFile == null){
+            File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
+            mPictureUri = Uri.fromFile(pictureFile);
+            if (pictureFile == null){
                 Log.d(TAG, "Error creating media file, check storage permissions!");
                 return;
             }
 
             try {
-                FileOutputStream fos = new FileOutputStream(mPictureFile);
+                FileOutputStream fos = new FileOutputStream(pictureFile);
                 fos.write(data);
                 fos.close();
             } catch (FileNotFoundException e) {
@@ -156,6 +150,12 @@ public class TakePictureActivity extends AppCompatActivity{
             } catch (IOException e) {
                 Log.d(TAG, "Error accessing file: " + e.getMessage());
             }
+
+            Intent i = new Intent(TakePictureActivity.this, ProcessOcrActivity.class);
+            i.putExtra("mPictureUri", mPictureUri.toString());
+            i.putExtra("mModus", mOcrOption);
+            startActivity(i);
+            finish();
         }
     };
 
@@ -194,45 +194,6 @@ public class TakePictureActivity extends AppCompatActivity{
 
         return mediaFile;
     }
-
-/*    private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        // Ensure that there's a camera activity to handle the intent
-        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
-            // Create the File where the photo should go
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                // Error occurred while creating the File
-
-            }
-            // Continue only if the File was successfully created
-            if (photoFile != null) {
-                //Uri photoURI = FileProvider.getUriForFile(this,
-                  //      "com.example.android.fileprovider",
-                    //    photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(photoFile));
-                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-            }
-        }
-    }
-
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String imageFileName = "OCR_" + timeStamp + "_";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  *//* prefix *//*
-                ".jpg",         *//* suffix *//*
-                storageDir      *//* directory *//*
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath();
-        return image;
-    }*/
 
     private void showOptions(View v){
         PopupMenu popupMenu = new PopupMenu(this, v);

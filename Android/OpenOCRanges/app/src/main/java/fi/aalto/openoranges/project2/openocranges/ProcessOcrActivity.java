@@ -1,16 +1,21 @@
 package fi.aalto.openoranges.project2.openocranges;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class ProcessOcrActivity extends AppCompatActivity {
@@ -18,7 +23,8 @@ public class ProcessOcrActivity extends AppCompatActivity {
     private Button mRetake;
     private Button mAddPicture;
     private Button mProcessOcr;
-    private File mPictureFile;
+    private ImageView mPictureView;
+    private Uri mPictureUri;
     private static final String TAG = "ProcessOcrActivity";
 
     @Override
@@ -27,18 +33,12 @@ public class ProcessOcrActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_processocr);
 
-//        mPictureFile = getIntent().getClass("mPictureFile");
-//
-//        try {
-//            FileOutputStream fos = new FileOutputStream(mPictureFile);
-//            fos.write(data);
-//            fos.close();
-//        } catch (FileNotFoundException e) {
-//            Log.d(TAG, "File not found: " + e.getMessage());
-//        } catch (IOException e) {
-//            Log.d(TAG, "Error accessing file: " + e.getMessage());
-//        }
+        mPictureUri = Uri.parse(getIntent().getStringExtra("mPictureUri"));
+        //final SelectedPictures mSelectedPictures = ((SelectedPictures) getApplicationContext());
 
+        //View for taken picture
+        mPictureView = (ImageView) findViewById(R.id.picture_view);
+        mPictureView.setImageURI(mPictureUri);
 
         //Button to retake picture
         mRetake = (Button) findViewById(R.id.Retake);
@@ -57,6 +57,10 @@ public class ProcessOcrActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //Adding action
+                //mSelectedPictures.setSelectedPictures(mPictureUri);
+                Intent i = new Intent(ProcessOcrActivity.this, TakePictureActivity.class);
+                startActivity(i);
+                finish();
             }
         });
 
@@ -66,6 +70,12 @@ public class ProcessOcrActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 //OCR processing
+                Toast.makeText(ProcessOcrActivity.this, "OCR performed", Toast.LENGTH_SHORT).show();
+                //mSelectedPictures = new SelectedPictures();
+                Intent i = new Intent(ProcessOcrActivity.this, MainActivity.class);
+                startActivity(i);
+                finish();
+
             }
         });
     }
