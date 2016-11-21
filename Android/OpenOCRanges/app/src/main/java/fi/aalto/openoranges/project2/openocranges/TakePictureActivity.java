@@ -9,10 +9,8 @@ import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.FileProvider;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.menu.MenuBuilder;
 import android.support.v7.view.menu.MenuPopupHelper;
@@ -47,6 +45,8 @@ public class TakePictureActivity extends AppCompatActivity{
     private TextView mModus;
     private int MY_PERMISSIONS_REQUEST_CAMERA;
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE;
+    private File mPictureFile;
+    private String mOcrOption = "Remote";
     //private static final int REQUEST_TAKE_PHOTO = 1;
     //private String mCurrentPhotoPath;
     private static final String TAG = "TakePictureActivity";
@@ -58,7 +58,6 @@ public class TakePictureActivity extends AppCompatActivity{
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_takepicture);
-        //setHasOptionsMenu(true);
 
         try {
             mCamera = Camera.open();//you can use open(int) to use different cameras
@@ -78,7 +77,11 @@ public class TakePictureActivity extends AppCompatActivity{
             @Override
             public void onClick(View view) {
                 mCamera.takePicture(null, null, mPicture);
-
+                Intent i = new Intent(TakePictureActivity.this, ProcessOcrActivity.class);
+                i.putExtra("mPictureFile", mPictureFile);
+                i.putExtra("mModus", mOcrOption);
+                startActivity(i);
+                finish();
             }
         });
         mTakePicture.bringToFront();
@@ -138,14 +141,14 @@ public class TakePictureActivity extends AppCompatActivity{
         @Override
         public void onPictureTaken(byte[] data, Camera camera) {
 
-            File pictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
-            if (pictureFile == null){
+            mPictureFile = getOutputMediaFile(MEDIA_TYPE_IMAGE);
+            if (mPictureFile == null){
                 Log.d(TAG, "Error creating media file, check storage permissions!");
                 return;
             }
 
             try {
-                FileOutputStream fos = new FileOutputStream(pictureFile);
+                FileOutputStream fos = new FileOutputStream(mPictureFile);
                 fos.write(data);
                 fos.close();
             } catch (FileNotFoundException e) {
@@ -242,14 +245,17 @@ public class TakePictureActivity extends AppCompatActivity{
                 switch (item.getItemId()) {
                     case R.id.local:
                         mModus.setText("Modus: Local");
+                        mOcrOption = "Local";
                         Toast.makeText(TakePictureActivity.this, "Local", Toast.LENGTH_SHORT).show();;
                         return true;
                     case R.id.remote:
                         mModus.setText("Modus: Remote");
+                        mOcrOption = "Remote";
                         Toast.makeText(TakePictureActivity.this, "Remote", Toast.LENGTH_SHORT).show();;
                         return true;
                     case R.id.benchmark:
                         mModus.setText("Modus: Benchmark");
+                        mOcrOption = "Benchmark";
                         Toast.makeText(TakePictureActivity.this, "Benchmark", Toast.LENGTH_SHORT).show();
                         return true;
                     default:
