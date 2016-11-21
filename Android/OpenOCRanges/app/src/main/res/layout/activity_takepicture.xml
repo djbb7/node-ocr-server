@@ -52,7 +52,7 @@
                     />
 
                 <ImageButton
-                    android:id="@+id/ocrOptions1"
+                    android:id="@+id/ocrOptions"
                     android:src="@drawable/options_white"
                     android:showAsAction="ifRoom"
                     android:background="#00000000"
@@ -76,7 +76,7 @@
             android:src="@mipmap/icon_ocranges"
             android:layout_gravity="bottom|center"/>
 
-        <android.support.design.widget.FloatingActionButton
+<!--        <android.support.design.widget.FloatingActionButton
             android:id="@+id/ocrOptions"
             android:layout_width="55dp"
             android:layout_height="54dp"
@@ -86,7 +86,7 @@
             android:src="@drawable/options_white"
             android:layout_gravity="bottom|right"
             app:srcCompat="@drawable/options_white"
-            android:onClick="showOptions"/>
+            android:onClick="showOptions"/>-->
 
         <FrameLayout
             android:id="@+id/camera_view"

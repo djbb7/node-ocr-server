@@ -4,12 +4,12 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context=".TakePictureActivity">
     <item android:id="@+id/local"
-        android:title="local"
-        android:icon="@drawable/local"/>
+        android:title="Local"
+        android:icon="@drawable/local" />
     <item android:id="@+id/remote"
-        android:title="remote"
+        android:title="Remote"
         android:icon="@drawable/remote"/>
     <item android:id="@+id/benchmark"
-        android:title="benchmark"
+        android:title="Benchmark"
         android:icon="@drawable/benchmark"/>
 </menu>
