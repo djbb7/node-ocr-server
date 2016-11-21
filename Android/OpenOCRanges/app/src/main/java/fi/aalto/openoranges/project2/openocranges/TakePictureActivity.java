@@ -1,34 +1,50 @@
 package fi.aalto.openoranges.project2.openocranges;
 
+import android.*;
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 
-public class TakePictureActivity extends AppCompatActivity{
+public class TakePictureActivity extends AppCompatActivity {
+
     private SurfaceHolder mHolder;
     private Camera mCamera;
     private ImageButton mBack;
     private TextView mModus;
+    private int MY_PERMISSIONS_REQUEST_CAMERA;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_takepicture);
+        //setHasOptionsMenu(true);
 
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+
+            // No explanation needed, we can request the permission.
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, MY_PERMISSIONS_REQUEST_CAMERA);
+            return;
+        }
 
         try {
             mCamera = Camera.open();//you can use open(int) to use different cameras
@@ -130,6 +146,58 @@ public class TakePictureActivity extends AppCompatActivity{
             mCamera.stopPreview();
             mCamera.release();
         }
+
+        //Permission handling
+        //@Override
+        public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+            //super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+            if (requestCode == MY_PERMISSIONS_REQUEST_CAMERA) {
+                for (int i = 0; i < permissions.length; i++) {
+                    String permission = permissions[i];
+                    int grantResult = grantResults[i];
+
+                    if (permission.equals(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                        if (grantResult == PackageManager.PERMISSION_GRANTED) {
+                            //Action for permission granted
+
+                        } else {
+                            //default action
+                            Toast.makeText(TakePictureActivity.this, "Camera needed for OCR processing!", Toast.LENGTH_SHORT).show();
+                            Intent j = new Intent(TakePictureActivity.this, MainActivity.class);
+                            startActivity(j);
+                            finish();
+                        }
+                    }
+                }
+            }
+        }
+
+//        @Override
+//        public boolean onCreateOptionsMenu(Menu menu){
+//            getMenuInflater().inflate(R.menu.menu_ocr, menu);
+//            return true;
+//        }
+//
+//        @Override
+//        public boolean onOptionsItemSelected(MenuItem item){
+//            int id = item.getItemId();
+//
+//            switch(id){
+//
+//                case R.id.local:
+//                    mModus.setText("Modus: Local");
+//                    break;
+//                case R.id.remote:
+//                    mModus.setText("Modus: Remote");
+//                    break;
+//                case R.id.benchmark:
+//                    mModus.setText("Modus: Benachmark");
+//            }
+//
+//            return super.onOptionsItemSelected(item);
+//        }
+
 
     }
 }
