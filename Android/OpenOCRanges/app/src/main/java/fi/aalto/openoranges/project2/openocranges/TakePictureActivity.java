@@ -11,8 +11,10 @@ import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.PopupMenu;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -21,10 +23,11 @@ import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.PopupMenu.OnMenuItemClickListener;
 
 import java.io.IOException;
 
-public class TakePictureActivity extends AppCompatActivity {
+public class TakePictureActivity extends AppCompatActivity{
 
     private SurfaceHolder mHolder;
     private Camera mCamera;
@@ -67,15 +70,17 @@ public class TakePictureActivity extends AppCompatActivity {
                         .setAction("Action", null).show();
             }
         });
+        mTakePicture.bringToFront();
 
         //Button to set options
         FloatingActionButton mOptions = (FloatingActionButton) findViewById(R.id.ocrOptions);
         mOptions.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
+                showOptions(view);
             }
         });
+        mOptions.bringToFront();
 
 
         //Button to close the TakePictureActivity and go back to MainActivity
@@ -89,10 +94,38 @@ public class TakePictureActivity extends AppCompatActivity {
             }
         });
 
+
+
         //Default modus is remote
-        mModus.setText("Modus: Remote");
+        //mModus.setText("Modus: Remote");
     }
 
+    private void showOptions(View v){
+        PopupMenu popupMenu = new PopupMenu(this, v);
+        popupMenu.getMenuInflater().inflate(R.menu.menu_ocr, popupMenu.getMenu());
+
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+                    case R.id.local:
+                        Toast.makeText(TakePictureActivity.this, "Local", Toast.LENGTH_SHORT).show();;
+                        return true;
+                    case R.id.remote:
+                        Toast.makeText(TakePictureActivity.this, "Remote", Toast.LENGTH_SHORT).show();;
+                        return true;
+                    case R.id.benchmark:
+                        Toast.makeText(TakePictureActivity.this, "Benchmark", Toast.LENGTH_SHORT).show();
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+        });
+
+        popupMenu.show();
+    }
 
     class CameraView extends SurfaceView implements SurfaceHolder.Callback {
 
@@ -172,6 +205,8 @@ public class TakePictureActivity extends AppCompatActivity {
                 }
             }
         }
+
+
 
 //        @Override
 //        public boolean onCreateOptionsMenu(Menu menu){
