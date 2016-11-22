@@ -42,6 +42,7 @@ public class TakePictureActivity extends AppCompatActivity{
     private Camera mCamera;
     private ImageButton mBack;
     private ImageButton mOptions;
+    private ImageButton mGallery;
     private TextView mModus;
     private int MY_PERMISSIONS_REQUEST_CAMERA;
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE;
@@ -88,6 +89,16 @@ public class TakePictureActivity extends AppCompatActivity{
             }
         });
         mOptions.bringToFront();
+
+        //Button to choose picture out of gallery
+        mGallery = (ImageButton) findViewById(R.id.importGallery);
+        mGallery.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                //Action for gallery
+            }
+        });
+        mGallery.bringToFront();
 
 
         //Button to close the TakePictureActivity and go back to MainActivity
