@@ -76,17 +76,15 @@
             android:src="@mipmap/icon_ocranges"
             android:layout_gravity="bottom|center"/>
 
-<!--        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/ocrOptions"
+        <android.support.design.widget.FloatingActionButton
+            android:id="@+id/importGallery"
             android:layout_width="55dp"
             android:layout_height="54dp"
             android:layout_margin="@dimen/fab_margin"
             app:layout_anchorGravity="center"
             app:backgroundTint="#EF6C00"
-            android:src="@drawable/options_white"
-            android:layout_gravity="bottom|right"
-            app:srcCompat="@drawable/options_white"
-            android:onClick="showOptions"/>-->
+            android:src="@drawable/gallery_white"
+            android:layout_gravity="bottom|right"/>
 
         <FrameLayout
             android:id="@+id/camera_view"
