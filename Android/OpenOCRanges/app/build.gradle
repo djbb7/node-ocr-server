@@ -38,4 +38,7 @@ dependencies {
     compile 'com.facebook.fresco:webpsupport:0.14.1'
     // For WebP support, without animations
     compile 'com.facebook.fresco:webpsupport:0.14.1'
+    compile project(path: ':tess-two')
+    compile project(path: ':cropper')
+    compile project(path: ':cropper')
 }
