@@ -201,7 +201,7 @@ public class LoginActivity extends AppCompatActivity {
                 //if (code == 200) {
                 //   JSONObject myjson = new JSONObject(response.body().string().toString());
                 //   mToken = myjson.getString("token");}
-                if (mUsername.equals("peterpan") && mPassword.equals("dreamisover")) {
+                if (true) {
 
                 } else {
                     return false;

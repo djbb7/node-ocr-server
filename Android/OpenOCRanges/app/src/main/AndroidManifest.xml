@@ -34,6 +34,7 @@
             android:theme="@style/AppTheme">
         </activity>
         <activity
+
             android:name=".TakePictureActivity"
             android:label="TakePicture"
             android:theme="@style/AppTheme">

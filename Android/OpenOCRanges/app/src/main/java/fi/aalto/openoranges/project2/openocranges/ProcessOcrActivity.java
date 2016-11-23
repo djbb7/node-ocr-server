@@ -23,7 +23,7 @@ import android.system.ErrnoException;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.theartofdev.edmodo.cropper.CropImageView;
@@ -46,7 +46,7 @@ public class ProcessOcrActivity extends Activity {
     private Uri mPictureUri;
     private TessOCR mTessOCR;
     private static final String TAG = "ProcessOcrActivity";
-    EditText textView;
+    TextView textView;
     public static final String lang = "eng";
     public static final String DATA_PATH = Environment.getExternalStorageDirectory().toString() + "/DemoOCR/";
     private ProgressDialog mProgressDialog;
@@ -57,16 +57,19 @@ public class ProcessOcrActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_processocr);
 
-        textView=(EditText) findViewById(R.id.editText_view);
+        textView = (TextView) findViewById(R.id.editText_view);
         mPictureUri = Uri.parse(getIntent().getStringExtra("mPictureUri"));
         //final SelectedPictures mSelectedPictures = ((SelectedPictures) getApplicationContext());
 
         //View for taken picture
         mPictureView = (CropImageView) findViewById(R.id.picture_view);
-        mPictureView.setImageUriAsync(mPictureUri);
+        if(getIntent().getStringExtra("mOrientation").equals("1")){
+            mPictureView.mPortrait=true;
+        }
+              mPictureView.setImageUriAsync(mPictureUri);
 
 
-        String[] paths = new String[] { DATA_PATH, DATA_PATH + "tessdata/" };
+        String[] paths = new String[]{DATA_PATH, DATA_PATH + "tessdata/"};
 
         for (String path : paths) {
             File dir = new File(path);
@@ -108,7 +111,7 @@ public class ProcessOcrActivity extends Activity {
 
 
         }
-        mTessOCR =new TessOCR();
+        mTessOCR = new TessOCR();
 
 
         //Button to retake picture
@@ -141,7 +144,7 @@ public class ProcessOcrActivity extends Activity {
                     mPictureView.setImageBitmap(cropped);
 
                 //mImage.setImageBitmap(converted);
-                doOCR(convertColorIntoBlackAndWhiteImage(cropped) );
+                doOCR(convertColorIntoBlackAndWhiteImage(cropped));
 
             }
         });
@@ -155,8 +158,7 @@ public class ProcessOcrActivity extends Activity {
             // mResult.setVisibility(V.ViewISIBLE);
 
 
-        }
-        else {
+        } else {
             mProgressDialog.show();
         }
 
@@ -174,8 +176,6 @@ public class ProcessOcrActivity extends Activity {
                         if (result != null && !result.equals("")) {
                             String s = result.trim();
                             textView.setText(result);
-
-
                         }
 
                         mProgressDialog.dismiss();
@@ -183,11 +183,14 @@ public class ProcessOcrActivity extends Activity {
 
                 });
 
-            };
+            }
+
+            ;
         }).start();
 
 
     }
+
     private Bitmap convertColorIntoBlackAndWhiteImage(Bitmap orginalBitmap) {
         ColorMatrix colorMatrix = new ColorMatrix();
         colorMatrix.setSaturation(0);
@@ -206,6 +209,7 @@ public class ProcessOcrActivity extends Activity {
 
         return blackAndWhiteBitmap;
     }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK) {
