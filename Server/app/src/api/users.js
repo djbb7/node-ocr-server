@@ -1,6 +1,6 @@
 import { Router } from 'express';
-import mongoose from 'mongoose';
 import crypto from 'crypto';
+import User from './schema';
 
 export default ({ config }) => {
 
@@ -80,10 +80,3 @@ export default ({ config }) => {
 
 	return api;
 }
-
-let Schema = mongoose.Schema;
-
-export const User = mongoose.model('User', new Schema({ 
-		username: String, 
-		password: String
-}));

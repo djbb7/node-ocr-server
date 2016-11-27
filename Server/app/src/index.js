@@ -30,6 +30,7 @@ let upload = multer({
 });
 
 mongoose.Promise = global.Promise;
+mongoose.set('debug', true);
 mongoose.connect(config.database); // connect to database
 
 app.use('/users', users( { config } ) );
