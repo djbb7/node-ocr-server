@@ -1,16 +1,16 @@
 package fi.aalto.openoranges.project2.openocranges;
 
 import android.Manifest;
-import android.content.ComponentName;
+import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.hardware.Camera;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
@@ -18,6 +18,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.view.menu.MenuBuilder;
 import android.support.v7.view.menu.MenuPopupHelper;
 import android.support.v7.widget.PopupMenu;
+import android.system.ErrnoException;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.SurfaceHolder;
@@ -37,10 +38,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 
 public class TakePictureActivity extends AppCompatActivity {
 
@@ -55,8 +55,11 @@ public class TakePictureActivity extends AppCompatActivity {
     private Uri mPictureUri;
     private String mOcrOption = "Remote";
     private static final String TAG = "TakePictureActivity";
-
     public static final int MEDIA_TYPE_IMAGE = 1;
+
+    String[] mImageUriList;
+
+
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -106,8 +109,32 @@ public class TakePictureActivity extends AppCompatActivity {
         mGallery.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //Action for gallery
-                startActivityForResult(getPickImageChooserIntent(), 200);
+                /**
+                 * Create a chooser intent to select the source to get image from.The source is the
+                 * gallery (ACTION_GET_CONTENT).<br/>
+                 * All possible sources are added to the intent chooser.
+
+                Intent intent = new Intent();
+                intent.setType("image/*");
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                intent.setAction(Intent.ACTION_GET_CONTENT);
+                startActivityForResult(Intent.createChooser(intent, "Select Picture"), 200);
+*/
+                Intent intent;
+
+                if (Build.VERSION.SDK_INT < 19) {
+                    intent = new Intent();
+                    intent.setAction(Intent.ACTION_GET_CONTENT);
+                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                    intent.setType("image/*");
+                    startActivityForResult(intent, 200);
+                } else {
+                    intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                    intent.setType("image/*");
+                    startActivityForResult(intent, 200);
+                }
             }
         });
         mGallery.bringToFront();
@@ -145,62 +172,67 @@ public class TakePictureActivity extends AppCompatActivity {
         return outputFileUri;
     }
 
+
     /**
-     * Create a chooser intent to select the source to get image from.<br/>
-     * The source can be camera's (ACTION_IMAGE_CAPTURE) or gallery's (ACTION_GET_CONTENT).<br/>
-     * All possible sources are added to the intent chooser.
+     * Get the URI of the selected image(s)
+     * Will return a list of strings with the URIs for gallery image(s).
+     *
+     * @param data the returned data of the activity result
      */
-    public Intent getPickImageChooserIntent() {
-
-        // Determine Uri of camera image to save.
-        Uri outputFileUri = getCaptureImageOutputUri();
-
-        List<Intent> allIntents = new ArrayList<>();
-        PackageManager packageManager = getPackageManager();
-
-        // collect all camera intents
-        Intent captureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
-        for (ResolveInfo res : listCam) {
-            Intent intent = new Intent(captureIntent);
-            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
-            intent.setPackage(res.activityInfo.packageName);
-            if (outputFileUri != null) {
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
-            }
-            allIntents.add(intent);
-        }
-
-        // collect all gallery intents
-        Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
-        galleryIntent.setType("image/*");
-        List<ResolveInfo> listGallery = packageManager.queryIntentActivities(galleryIntent, 0);
-        for (ResolveInfo res : listGallery) {
-            Intent intent = new Intent(galleryIntent);
-            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
-            intent.setPackage(res.activityInfo.packageName);
-            allIntents.add(intent);
-        }
-
-        // the main intent is the last in the list (fucking android) so pickup the useless one
-        Intent mainIntent = allIntents.get(allIntents.size() - 1);
-        for (Intent intent : allIntents) {
-            if (intent.getComponent().getClassName().equals("com.android.documentsui.DocumentsActivity")) {
-                mainIntent = intent;
-                break;
+    public String[] getPickImageResultUri(Intent data) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            if (data.getClipData() == null) {
+                mImageUriList = new String[1];
+                boolean isCamera = true;
+                if (data != null && data.getData() != null) {
+                    String action = data.getAction();
+                    isCamera = action != null && action.equals(MediaStore.ACTION_IMAGE_CAPTURE);
+                }
+                mImageUriList[0] = String.valueOf(isCamera ? getCaptureImageOutputUri() : data.getData());
+            } else {
+                mImageUriList = new String[data.getClipData().getItemCount()];
+                for (int i = 0; i < data.getClipData().getItemCount(); i++) {
+                    mImageUriList[i] = data.getClipData().getItemAt(i).getUri().toString();
+                }
             }
         }
-        allIntents.remove(mainIntent);
-
-        // Create a chooser from the main intent
-        Intent chooserIntent = Intent.createChooser(mainIntent, "Select source");
-
-        // Add all other intents
-        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, allIntents.toArray(new Parcelable[allIntents.size()]));
-
-        return chooserIntent;
+        return mImageUriList;
     }
 
+    /**
+     * Test if we can open the given Android URI to test if permission required error is thrown.<br>
+     */
+
+    public boolean isUriRequiresPermissions(Uri uri) {
+        try {
+            ContentResolver resolver = getContentResolver();
+            InputStream stream = resolver.openInputStream(uri);
+            stream.close();
+            return false;
+        } catch (FileNotFoundException e) {
+            if (e.getCause() instanceof ErrnoException) {
+                return true;
+            }
+        } catch (Exception e) {
+        }
+        return false;
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == Activity.RESULT_OK) {
+            getPickImageResultUri(data);
+
+            Intent i = new Intent(TakePictureActivity.this, ProcessOcrActivity.class);
+            i.putExtra("mModus", mOcrOption);
+            i.putExtra("mOrientation", "0");
+            i.putExtra("mPictureUriList", mImageUriList);
+
+            startActivity(i);
+            finish();
+
+        }
+    }
 
     @Override
     protected void onStart() {
@@ -253,7 +285,7 @@ public class TakePictureActivity extends AppCompatActivity {
             Intent i = new Intent(TakePictureActivity.this, ProcessOcrActivity.class);
             i.putExtra("mPictureUri", mPictureUri.toString());
             i.putExtra("mModus", mOcrOption);
-            i.putExtra("mOrientation", ""+getResources().getConfiguration().orientation);
+            i.putExtra("mOrientation", "" + getResources().getConfiguration().orientation);
 
             startActivity(i);
             finish();
@@ -406,9 +438,9 @@ public class TakePictureActivity extends AppCompatActivity {
             //now, recreate the camera preview
             try {
                 mCamera.setPreviewDisplay(mHolder);
-                if(getResources().getConfiguration().orientation==1){
+                if (getResources().getConfiguration().orientation == 1) {
                     mCamera.setDisplayOrientation(90);
-                }else{
+                } else {
                     mCamera.setDisplayOrientation(180);
                 }
                 mCamera.startPreview();

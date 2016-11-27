@@ -44,6 +44,7 @@ public class ProcessOcrActivity extends Activity {
     private Button mProcessOcr;
     private CropImageView mPictureView;
     private Uri mPictureUri;
+    private String[] mPictureUriList;
     private TessOCR mTessOCR;
     private static final String TAG = "ProcessOcrActivity";
     TextView textView;
@@ -58,16 +59,28 @@ public class ProcessOcrActivity extends Activity {
         setContentView(R.layout.activity_processocr);
 
         textView = (TextView) findViewById(R.id.editText_view);
-        mPictureUri = Uri.parse(getIntent().getStringExtra("mPictureUri"));
+        try {
+            mPictureUriList = getIntent().getStringArrayExtra("mPictureUriList");
+        } catch (Exception e) {
+
+        }
         //final SelectedPictures mSelectedPictures = ((SelectedPictures) getApplicationContext());
 
         //View for taken picture
         mPictureView = (CropImageView) findViewById(R.id.picture_view);
-        if(getIntent().getStringExtra("mOrientation").equals("1")){
-            mPictureView.mPortrait=true;
-        }
-              mPictureView.setImageUriAsync(mPictureUri);
+        mPictureView.mPortrait = false;
+        if (getIntent().getStringExtra("mOrientation").equals("1")) {
+            mPictureView.mPortrait = true;
+            mPictureUri = Uri.parse(getIntent().getStringExtra("mPictureUri"));
+            mPictureView.setImageUriAsync(mPictureUri);
+        } else if (mPictureUriList != null && mPictureUriList.length == 1) {
 
+            mPictureUri = Uri.parse(mPictureUriList[0]);
+            mPictureView.setImageUriAsync(mPictureUri);
+        } else {
+            mPictureUri = Uri.parse(mPictureUriList[1]);
+            mPictureView.setImageUriAsync(mPictureUri);
+        }
 
         String[] paths = new String[]{DATA_PATH, DATA_PATH + "tessdata/"};
 
@@ -139,12 +152,16 @@ public class ProcessOcrActivity extends Activity {
         mProcessOcr.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Bitmap cropped = mPictureView.getCroppedImage(500, 500);
-                if (cropped != null)
-                    mPictureView.setImageBitmap(cropped);
+                try {
+                    Bitmap cropped = mPictureView.getCroppedImage(500, 500);
+                    if (cropped != null)
+                        mPictureView.setImageBitmap(cropped);
 
-                //mImage.setImageBitmap(converted);
-                doOCR(convertColorIntoBlackAndWhiteImage(cropped));
+                    //mImage.setImageBitmap(converted);
+                    doOCR(convertColorIntoBlackAndWhiteImage(cropped));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
             }
         });
