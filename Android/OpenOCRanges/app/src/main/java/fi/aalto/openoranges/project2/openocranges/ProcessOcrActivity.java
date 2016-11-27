@@ -34,7 +34,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class ProcessOcrActivity extends Activity {
@@ -49,7 +51,8 @@ public class ProcessOcrActivity extends Activity {
     private static final String TAG = "ProcessOcrActivity";
     TextView textView;
     public static final String lang = "eng";
-    public static final String DATA_PATH = Environment.getExternalStorageDirectory().toString() + "/DemoOCR/";
+    public static final String DATA_PATH = Environment.getExternalStorageDirectory().toString() + "/OCR/";
+    public static final String path = Environment.getExternalStorageDirectory().toString() + "/OpenTxtFiles";
     private ProgressDialog mProgressDialog;
 
     @Override
@@ -165,6 +168,10 @@ public class ProcessOcrActivity extends Activity {
 
             }
         });
+
+        //Creates Directory for saving the text files from OCR
+        File dir = new File(path);
+        dir.mkdirs();
     }
 
 
@@ -179,11 +186,10 @@ public class ProcessOcrActivity extends Activity {
             mProgressDialog.show();
         }
 
-        new Thread(new Runnable() {
+      Thread t =  new Thread(new Runnable() {
             public void run() {
 
                 final String result = mTessOCR.getOCRResult(bitmap).toLowerCase();
-
 
                 runOnUiThread(new Runnable() {
 
@@ -203,10 +209,66 @@ public class ProcessOcrActivity extends Activity {
             }
 
             ;
-        }).start();
+        });
+        t.start();
+        try {
+            t.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
 
+        /**This is the code how it was described in the video:https://www.youtube.com/watch?v=x3pyyQbwLko
+         * but it is not working...
 
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        File file = new File(path + "/" + timeStamp + ".txt");
+        try {
+           String [] saveText = String.valueOf(textView.getText()).split(System.getProperty("line.seperator"));
+            save(file, saveText);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+         */
+
+        //Creates a text file properly but the textfile is empty...need to be fixed
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        File file = new File(path + "/" + timeStamp + ".txt");
+        String[] text = new String[1];
+        text[0] = String.valueOf(textView.getText());
+        try {
+            save(file, text);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
+
+    public static void save(File file, String[] data) {
+        FileOutputStream fos = null;
+        try {
+            fos = new FileOutputStream(file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        try {
+            try {
+                for (int i = 0; i < data.length; i++) {
+                    fos.write(data[i].getBytes());
+                    if (i < data.length - 1) {
+                        fos.write("\n".getBytes());
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } finally {
+            try {
+                fos.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 
     private Bitmap convertColorIntoBlackAndWhiteImage(Bitmap orginalBitmap) {
         ColorMatrix colorMatrix = new ColorMatrix();
