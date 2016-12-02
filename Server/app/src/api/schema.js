@@ -15,8 +15,7 @@ export const Transaction = mongoose.model('Transaction', new Schema({
 	finishedAt: { type: Date, default: null }
 }));
 
-export const File = mongoose.model('File', new Schema(
-{
+export const File = mongoose.model('File', new Schema({
 	_transaction: { type: Schema.Types.ObjectId, ref: 'Transaction'},
 	fileName: String,
 	extractedText: String,
