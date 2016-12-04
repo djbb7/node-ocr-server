@@ -31,6 +31,7 @@ import com.theartofdev.edmodo.cropper.CropImageView;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -240,7 +241,20 @@ public class ProcessOcrActivity extends Activity {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        File root = new File(path);
+        File gpxfile = new File(root, "yourFileName.txt");
+        try {
+            FileWriter writer = new FileWriter(gpxfile);
+            writer.append(textView.getText().toString());
+            writer.flush();
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
+
 
     public static void save(File file, String[] data) {
         FileOutputStream fos = null;
