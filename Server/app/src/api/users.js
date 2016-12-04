@@ -1,18 +1,18 @@
 import { Router } from 'express';
 import crypto from 'crypto';
-import User from './schema';
+import { User, Session } from './schema';
+import passport from 'passport';
 
 export default ({ config }) => {
-
 	const secret = 'supersecret';
 
 	function randomToken () {
 		return crypto.randomBytes(24).toString('hex');
 	}
 
-	let api = Router();
+	let users = Router();
 
-	api.get( '/setup', function( req, res ) {
+	users.get( '/setup', function( req, res ) {
 
 		// create a sample user
 		var peter = new User({ 
@@ -39,44 +39,69 @@ export default ({ config }) => {
 		});
 	});
 
-	api.post( '/login', ( req, res, next )  => {
-		if (!req.body.username || !req.body.password){
-			next({code: 400, message: 'Username of password missing.'});
+	users.post('/login', ( req, res, next ) => {
+		console.log(req.body);
+		if(!req.body.username || !req.body.password) {
+			next({ code: 400, message: 'Username of password missing.' });
 		}
 		next();
-	}).use( ( req, res, next ) => {
-		User.findOne({
-				username: req.body.username
-			}, function(err, user) {
+	}, (req, res, next) => {
+		console.log('Asd');
+		User.findOne({username: req.body.username}, (err, user) => {
+			if(err)
+				return next({ code: 400, message: err });
 
-				if (err) {
-					return next({code: 400, message: err});
-				}
+			if(!user || user.password !== req.body.password)
+				return next({ code: 404, message: 'Authentication failed.' });
 
-				if (!user || user.password !== req.body.password) {
-					return next({ code: 404, message: 'Authentication failed.' });
-				}
+			// Create a token
+			var token = randomToken();
 
-				// create a token
-				var token = randomToken();
+			// Create a session
+			var session = new Session({
+				_user: user,
+				token: token
+			});
+			session.save();
 
-				// TODO: save token to DB
-
-				// return the information including token as JSON
-				res.json({
-					success: true,
-					message: 'Enjoy your token!',
-					token: token
+			// Return the information including token as JSON
+			res.json({
+				token: token
 			});
 		});
- }).use((err, req, res, next) => res.status(err.code).json(err));
+ 	}, (err, req, res, next) => { res.status(err.code).json(err); });
 
-	api.post( '/logout', function( req, res ) {
+	users.post('/logout', check_user, function( req, res ) {
+		console.log('Logout');
+		console.log(req.user);
 
-			// TODO: check token is in DB
+		// Delete session req.session
 
-			// TODO: delete token from DB
+		// TODO: check token is in DB
+
+		// TODO: delete token from DB
 	});
 
-	return api;
+	return users;
+}
+
+export function check_user(req, res, next) {
+	console.log('Checking user');
+	if(!req.get('Authorization'))
+	{
+		res.status(401).send('Not logged in');
+		return;
+	}
+
+	Session.findOne({token: req.get('Authorization')}).populate('_user').exec((err, session) => {
+		if(err || session === null || session._user === null)
+		{
+			res.status(401).send('Session expired');
+			return;
+		}
+
+		req.session = session;
+		req.user = session._user;
+		next();
+	});
 }

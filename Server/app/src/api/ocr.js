@@ -5,19 +5,20 @@ import tesseract from 'node-tesseract';
 import fs from 'fs';
 import { User, Transaction, Image, File} from './schema';
 import Jimp from 'jimp';
+import { check_user } from './users';
 
 export default ({ config }, upload) => {
 	let ocr = Router();
 
-	ocr.post('/upload', upload.array('photos[]', 15), (req, res) => {
+	ocr.post('/upload', check_user, upload.array('photos[]', 15), (req, res) => {
 		var transaction = new Transaction({
-			_user: null, // TODO: fill with proper value once login is done
+			_user: req.user,
 			processed: false
 		});
 
 		req.files.forEach(function(file) {
 			var image = new Image({
-				_user: null, // TODO: fill with proper value once login is done
+				_user: req.user,
 				data: file.buffer
 			});
 			image.save();
@@ -62,7 +63,7 @@ export default ({ config }, upload) => {
 		});
 	});
 
-	ocr.get('/image/:id', (req, res) => {
+	ocr.get('/image/:id', check_user, (req, res) => {
 		var imageId = req.params.id;
 
 		Image.findById(imageId, (err, image) => {
@@ -75,7 +76,12 @@ export default ({ config }, upload) => {
 				res.status(404).send('Not found');
 				return;
 			}
-			
+
+			if(!image._user.equals(req.user._id)) {
+				res.status(404).send('Not found');
+				return;
+			}
+
 			res.end(image.data);
 		});
 	});
@@ -98,22 +104,24 @@ export default ({ config }, upload) => {
 		})
 	})
 
-	ocr.get('/transaction/:id', (req, res) => {
+	ocr.get('/transaction/:id', check_user, (req, res) => {
 		var transactionId = req.params.id;
-
 		Transaction.findById(transactionId).populate('files').exec((err, transaction) => {
 			// CastErrors are ignored since they'll result in 404 in next step
 			if(err && err.name !== 'CastError')
 				throw err;
 
-			if(transaction == null)
-			{
+			if(transaction == null) {
 				res.status(404).send('Transaction not found');
 				return;
 			}
 
-			if(transaction.finishedAt === null)
-			{
+			if(!transaction._user.equals(req.user._id)) {
+				res.status(404).send('Transaction not found');
+				return;
+			}
+
+			if(transaction.finishedAt === null) {
 				res.status(202).send('Not finished');
 				return;
 			}

@@ -8,6 +8,12 @@ export const User = mongoose.model('User', new Schema({
 	transactions: [{ type: Schema.Types.ObjectId, ref: 'Transaction' }]
 }));
 
+export const Session = mongoose.model('Session', new Schema({
+	_user: { type: Schema.Types.ObjectId, ref: 'User' },
+	token: String,
+	started: { type: Date, expires: 3600, default: Date.now }
+}));
+
 export const Transaction = mongoose.model('Transaction', new Schema({
 	_user: { type: Schema.Types.ObjectId, ref: 'User' },
 	files: [{ type: Schema.Types.ObjectId, ref: 'File' }],
