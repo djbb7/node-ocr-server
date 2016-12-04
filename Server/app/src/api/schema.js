@@ -22,6 +22,8 @@ export const File = mongoose.model('File', new Schema(
 	extractedText: String,
 	error: String,
 	thumbnail: Buffer,
+	processingStarted: Date,
+	processingFinished: Date,
 	image: { type: Schema.Types.ObjectId, ref: 'Image' }
 }));
 

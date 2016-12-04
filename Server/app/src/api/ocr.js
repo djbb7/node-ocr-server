@@ -27,6 +27,8 @@ export default ({ config }, upload) => {
 				fileName: file.originalName,
 				extractedText: null,
 				error: null,
+				processingStarted: null,
+				processingFinished: null,
 				thumbnail: null,
 				image: image
 			});
@@ -129,6 +131,9 @@ export default ({ config }, upload) => {
 					fileName : file.fileName,
 					extractedText: file.extractedText,
 					error: file.error,
+					processingStarted: file.processingStarted,
+					processingFinished: file.processingFinished,
+					processingTime: (file.processingFinished - file.processingStarted) / 1000,
 					thumbnailUrl: '/ocr/thumb/' + file._id,
 					imageUrl: '/ocr/image/' + file.image
 				});
@@ -162,18 +167,21 @@ function process(transaction, file) {
 		let fileName = __dirname + '/' + file.image._id;
 		fs.writeFile(fileName, file.image.data);
 
+		file.processingStarted = Date.now();
 		// Start processing image, will return automatically when done
 		tesseract.process(fileName, (err, text) => {
 			if(err) {
 				fs.unlink(fileName);
 
 				file.error = 'Running tesseract failed: \'' + err + '\'';
+				file.processingFinished = Date.now();
 				file.save();
 			}
 			else {
 				fs.unlink(fileName);
 
 				file.extractedText = text;
+				file.processingFinished = Date.now();
 				file.save();
 			}
 
@@ -188,9 +196,9 @@ function checkCompletion(transaction)
 	if(transaction.finishedAt !== null)
 		console.log('Transaction has already been finished');
 
-	// Transaction is completed if every file has either extractedText or error specified
+	// Transaction is completed if every file has been finished
 	let done = transaction.files.every(file => {
-		return file.extractedText !== null || file.error !== null;
+		return file.processingFinished !== null;
 	});
 
 	if(done)
