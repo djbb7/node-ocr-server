@@ -4,6 +4,7 @@ import multer from 'multer';
 import tesseract from 'node-tesseract';
 import fs from 'fs';
 import { User, Transaction, Image, File} from './schema';
+import Jimp from 'jimp';
 
 export default ({ config }, upload) => {
 	let ocr = Router();
@@ -24,11 +25,20 @@ export default ({ config }, upload) => {
 			var file = new File({
 				_transaction: transaction,
 				fileName: file.originalName,
-				extractedText: "",
-				thumbnail: file.buffer, // TODO: resize image for thumbnail
+				extractedText: null,
+				error: null,
+				thumbnail: null,
 				image: image
 			});
 			file.save();
+
+			// Create thumbnail for the image
+			Jimp.read(image.data, (err, image) => {
+				image.scaleToFit(256, 256).getBuffer(Jimp.MIME_PNG, (err, buffer) => {
+					file.thumbnail = buffer;
+					file.save();
+				});
+			});
 
 			transaction.files.push(file);
 		});
@@ -45,16 +55,17 @@ export default ({ config }, upload) => {
 		res.json({
 			transaction: {
 				id: transaction._id,
-				href: '/ocr/transaction?id=' + transaction._id
-			}			
+				href: '/ocr/transaction/' + transaction._id
+			}
 		});
 	});
 
-	ocr.get('/image', (req, res) => {
-		var imageId = req.query.id;
+	ocr.get('/image/:id', (req, res) => {
+		var imageId = req.params.id;
 
 		Image.findById(imageId, (err, image) => {
-			if(err)
+			// CastErrors are ignored since they'll result in 404 in next step
+			if(err && err.name !== 'CastError')
 				throw err;
 
 			if(image == null)
@@ -67,11 +78,12 @@ export default ({ config }, upload) => {
 		});
 	});
 
-	ocr.get('/thumb', (req, res) => {
-		var fileId = req.query.id;
+	ocr.get('/thumb/:id', (req, res) => {
+		var fileId = req.params.id;
 
 		File.findById(fileId, (err, file) => {
-			if(err)
+			// CastErrors are ignored since they'll result in 404 in next step
+			if(err && err.name !== 'CastError')
 				throw err;
 
 			if(file == null)
@@ -84,26 +96,41 @@ export default ({ config }, upload) => {
 		})
 	})
 
-	ocr.get('/transaction', (req, res) => {
-		var transactionId = req.query.id;
+	ocr.get('/transaction/:id', (req, res) => {
+		var transactionId = req.params.id;
 
 		Transaction.findById(transactionId).populate('files').exec((err, transaction) => {
-			if(err)
+			// CastErrors are ignored since they'll result in 404 in next step
+			if(err && err.name !== 'CastError')
 				throw err;
 
 			if(transaction == null)
-				return next({code: 404});
-
-			var response = {
-				files: []
+			{
+				res.status(404).send('Transaction not found');
+				return;
 			}
 
+			if(transaction.finishedAt === null)
+			{
+				res.status(202).send('Not finished');
+				return;
+			}
+
+			var response = {
+				files: [],
+				createdAt: transaction.createdAt,
+				finishedAt: transaction.finishedAt,
+				duration: (transaction.finishedAt - transaction.createdAt) / 1000
+			}
+
+			// Craft list of files and their thumbnails and images
 			transaction.files.forEach(file => {
 				response.files.push({
 					fileName : file.fileName,
 					extractedText: file.extractedText,
-					thumbnailUrl: '/ocr/thumb?id=' + file._id,
-					imageUrl: '/ocr/image?id=' + file.image
+					error: file.error,
+					thumbnailUrl: '/ocr/thumb/' + file._id,
+					imageUrl: '/ocr/image/' + file.image
 				});
 			});
 
@@ -115,18 +142,21 @@ export default ({ config }, upload) => {
 }
 
 function process(transaction, file) {
-	console.log('Processing file');
 	file.populate('image', (err) => {
 		if(err)
 			throw err;
 
-		if(file.image == null)
+		// In practice this should never happen unless someone gives images ridiculously low TTL
+		if(file.image === null)
 		{
-			console.log('Image not found for file ' + file._id);
+			// Indicate that processing file failed to handle transaction completions properly
+			file.error = 'Failed to perform OCR on file, image not found in database.';
+			file.save();
+
+			checkCompletion(transaction);
+
 			return;
 		}
-
-		console.log('Processing ' + file.image._id);
 
 		// Tesseract reads file from disk so create temporary file
 		let fileName = __dirname + '/' + file.image._id;
@@ -136,17 +166,36 @@ function process(transaction, file) {
 		tesseract.process(fileName, (err, text) => {
 			if(err) {
 				fs.unlink(fileName);
-				console.log('Processing image ' + file.image._id + ' failed');
+
+				file.error = 'Running tesseract failed: \'' + err + '\'';
+				file.save();
 			}
 			else {
 				fs.unlink(fileName);
 
-				console.log('Image ' + file.image._id + ' processed');
 				file.extractedText = text;
 				file.save();
-
-				// TODO: check state of transaction
 			}
+
+			checkCompletion(transaction);
 		});
 	});
+}
+
+function checkCompletion(transaction)
+{
+	// Check if transaction finished by completing processing of this file
+	if(transaction.finishedAt !== null)
+		console.log('Transaction has already been finished');
+
+	// Transaction is completed if every file has either extractedText or error specified
+	let done = transaction.files.every(file => {
+		return file.extractedText !== null || file.error !== null;
+	});
+
+	if(done)
+	{
+		transaction.finishedAt = Date.now();
+		transaction.save();
+	}
 }

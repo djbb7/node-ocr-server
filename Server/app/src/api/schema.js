@@ -20,6 +20,7 @@ export const File = mongoose.model('File', new Schema(
 	_transaction: { type: Schema.Types.ObjectId, ref: 'Transaction'},
 	fileName: String,
 	extractedText: String,
+	error: String,
 	thumbnail: Buffer,
 	image: { type: Schema.Types.ObjectId, ref: 'Image' }
 }));
