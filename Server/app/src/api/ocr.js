@@ -86,15 +86,21 @@ export default ({ config }, upload) => {
 		});
 	});
 
-	ocr.get('/thumb/:id', (req, res) => {
+	ocr.get('/thumb/:id', check_user, (req, res) => {
 		var fileId = req.params.id;
 
-		File.findById(fileId, (err, file) => {
+		File.findById(fileId).populate('_transaction').exec((err, file) => {
 			// CastErrors are ignored since they'll result in 404 in next step
 			if(err && err.name !== 'CastError')
 				throw err;
 
 			if(file == null)
+			{
+				res.status(404).send('Not found');
+				return;
+			}
+
+			if(!file._transaction._user.equals(req.user._id))
 			{
 				res.status(404).send('Not found');
 				return;

@@ -28,7 +28,6 @@ mongoose.Promise = global.Promise;
 mongoose.set('debug', true);
 mongoose.connect(config.database);
 
-
 let app = express();
 
 // setup middleware for accessing JSON request
@@ -52,6 +51,8 @@ app.get('/', (req, res) => {
 app.server = https.createServer(options, app);
 
 app.server.listen(process.env.PORT || config.port);
+
+app.set('json spaces', 2);
 
 console.log(`Started on port ${app.server.address().port}`);
 
