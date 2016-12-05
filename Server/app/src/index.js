@@ -26,7 +26,11 @@ let upload = multer({
 // setup mongodb connection
 mongoose.Promise = global.Promise;
 mongoose.set('debug', true);
-mongoose.connect(config.database);
+if (process.env.MONGODB_URL) {
+	mongoose.connect(process.env.MONGODB_URL);
+} else {
+	mongoose.connect(config.database);
+}
 
 let app = express();
 
