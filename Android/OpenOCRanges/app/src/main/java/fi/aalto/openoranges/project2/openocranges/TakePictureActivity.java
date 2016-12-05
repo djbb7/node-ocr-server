@@ -57,12 +57,13 @@ public class TakePictureActivity extends AppCompatActivity {
     private int MY_PERMISSIONS_REQUEST_CAMERA;
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE;
     private Uri mPictureUri;
-    private String mOcrOption = "Remote";
+    private String mOcrOption = "Local";
     private static final String TAG = "TakePictureActivity";
     public static final int MEDIA_TYPE_IMAGE = 1;
 
     String[] mImageUriList;
 
+    private String mToken;
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -88,6 +89,9 @@ public class TakePictureActivity extends AppCompatActivity {
             FrameLayout camera_view = (FrameLayout) findViewById(R.id.camera_view);
             camera_view.addView(mCameraView);//add the SurfaceView to the layout
         }
+
+        //get Token from previous activity
+        mToken = getIntent().getStringExtra("token");
 
         //Button to take picture
         FloatingActionButton mTakePicture = (FloatingActionButton) findViewById(R.id.takePicture);
@@ -231,6 +235,7 @@ public class TakePictureActivity extends AppCompatActivity {
             Intent i = new Intent(TakePictureActivity.this, ProcessOcrActivity.class);
             i.putExtra("mModus", mOcrOption);
             i.putExtra("mOrientation", "0");
+            i.putExtra("token", mToken);
             i.putExtra("mPictureUriList", mImageUriList);
 
             startActivity(i);
@@ -298,6 +303,7 @@ public class TakePictureActivity extends AppCompatActivity {
             Intent i = new Intent(TakePictureActivity.this, ProcessOcrActivity.class);
             i.putExtra("mPictureUri", mPictureUri.toString());
             i.putExtra("mModus", mOcrOption);
+            i.putExtra("token", mToken);
             i.putExtra("mOrientation", "" + getResources().getConfiguration().orientation);
 
             startActivity(i);

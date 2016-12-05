@@ -14,6 +14,7 @@ import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
 import android.graphics.Paint;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -28,6 +29,8 @@ import android.widget.Toast;
 
 import com.theartofdev.edmodo.cropper.CropImageView;
 
+import org.json.JSONObject;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -39,6 +42,13 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class ProcessOcrActivity extends Activity {
 
@@ -56,6 +66,17 @@ public class ProcessOcrActivity extends Activity {
     public static final String path = Environment.getExternalStorageDirectory().toString() + "/OpenTxtFiles";
     private ProgressDialog mProgressDialog;
 
+    private String mToken;
+    private String mModus;
+
+    private uploadImagesTask mUploadImagesTask = null;
+
+    private String mTransactionID;
+
+    //For the communication with the server
+    public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    OkHttpClient client = new OkHttpClient();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -69,6 +90,10 @@ public class ProcessOcrActivity extends Activity {
 
         }
         //final SelectedPictures mSelectedPictures = ((SelectedPictures) getApplicationContext());
+
+        //get Token from previous activity
+        mToken = getIntent().getStringExtra("token");
+        mModus = getIntent().getStringExtra("mModus");
 
         //View for taken picture
         mPictureView = (CropImageView) findViewById(R.id.picture_view);
@@ -154,15 +179,28 @@ public class ProcessOcrActivity extends Activity {
         mProcessOcr.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                try {
-                    Bitmap cropped = mPictureView.getCroppedImage(500, 500);
-                    if (cropped != null)
-                        mPictureView.setImageBitmap(cropped);
+                //if remote modus is chosen do ocr processing on server
+                if (mModus.equals("Remote")) {
+                    if (mProgressDialog == null) {
+                        mProgressDialog = ProgressDialog.show(getApplicationContext(), "Processing",
+                                "Please wait...", true);
+                        // mResult.setVisibility(V.ViewISIBLE);
+                    } else {
+                        mProgressDialog.show();
+                    }
+                    mUploadImagesTask = new uploadImagesTask();
+                    mUploadImagesTask.execute((Void) null);
+                } else {
+                    try {
+                        Bitmap cropped = mPictureView.getCroppedImage(500, 500);
+                        if (cropped != null)
+                            mPictureView.setImageBitmap(cropped);
 
-                    //mImage.setImageBitmap(converted);
-                    doOCR(convertColorIntoBlackAndWhiteImage(cropped));
-                } catch (Exception e) {
-                    e.printStackTrace();
+                        //mImage.setImageBitmap(converted);
+                        doOCR(convertColorIntoBlackAndWhiteImage(cropped));
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
                 }
 
             }
@@ -185,7 +223,7 @@ public class ProcessOcrActivity extends Activity {
             mProgressDialog.show();
         }
 
-      Thread t =  new Thread(new Runnable() {
+        Thread t = new Thread(new Runnable() {
             public void run() {
 
                 final String result = mTessOCR.getOCRResult(bitmap).toLowerCase();
@@ -219,14 +257,14 @@ public class ProcessOcrActivity extends Activity {
         /**This is the code how it was described in the video:https://www.youtube.com/watch?v=x3pyyQbwLko
          * but it is not working...
 
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        File file = new File(path + "/" + timeStamp + ".txt");
-        try {
-           String [] saveText = String.valueOf(textView.getText()).split(System.getProperty("line.seperator"));
-            save(file, saveText);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+         File file = new File(path + "/" + timeStamp + ".txt");
+         try {
+         String [] saveText = String.valueOf(textView.getText()).split(System.getProperty("line.seperator"));
+         save(file, saveText);
+         } catch (Exception e) {
+         e.printStackTrace();
+         }
          */
 
         //Creates a text file properly but the textfile is empty...need to be fixed
@@ -433,5 +471,85 @@ public class ProcessOcrActivity extends Activity {
         } catch (Exception e) {
         }
         return false;
+    }
+
+    //Sends a json request to the server and returns the response
+    //receives as parameters a string which represents the url of the server
+    public Response get(String url, Uri uri) throws IOException {
+        RequestBody req = null;
+        try {
+            final MediaType MEDIA_TYPE_PNG = MediaType.parse("image/jpeg");
+            File file = new File(uri.getPath());
+            req = new MultipartBody.Builder().setType(MultipartBody.FORM)
+                    .addFormDataPart("photos[]", file.getName(), RequestBody.create(MEDIA_TYPE_PNG, file)).build();
+        } catch (Exception i) {
+            i.printStackTrace();
+        }
+
+        Request request = new Request.Builder()
+                .url(url)
+                .addHeader("Authorization", mToken)
+                .post(req)
+                .build();
+        return client.newCall(request).execute();
+    }
+
+    /**
+     * Represents an asynchronous task used to get the address of the chosen application
+     */
+    public class uploadImagesTask extends AsyncTask<Void, Void, Boolean> {
+
+        private boolean isInternetAvailable = true;
+
+
+        @Override
+        protected Boolean doInBackground(Void... params) {
+
+            try {
+                String server_url = getString(R.string.server);
+                Response response = ProcessOcrActivity.this.get(server_url + "ocr/upload/", mPictureUri);
+                int code = response.code();
+
+                //if the code is 200 than everything is okay and vnc viewer can start
+                //if the code is 202 wait for the VM to get started
+                if (code == 200) {
+                    final JSONObject myjson = new JSONObject(response.body().string().toString());
+                    mTransactionID = myjson.getString("id");
+                    return true;
+                } else {
+                    return false;
+                }
+            } catch (Exception i) {
+                isInternetAvailable = false;
+                i.printStackTrace();
+                return false;
+            }
+        }
+
+
+        protected void onPostExecute(Boolean success) {
+            mUploadImagesTask = null;
+            mProgressDialog.dismiss();
+
+            if (success) {
+
+
+                Toast.makeText(ProcessOcrActivity.this, "SUCCESS!", Toast.LENGTH_LONG).show();
+
+            } else {
+                if (isInternetAvailable == false) {
+                    Toast.makeText(ProcessOcrActivity.this, "Application can not be opened due to missing internet connection!", Toast.LENGTH_LONG).show();
+                    // mLogoutButton.setEnabled(true);
+                    //mRefreshButton.setEnabled(true);
+                } else {
+                }
+            }
+        }
+
+        @Override
+        protected void onCancelled() {
+            mUploadImagesTask = null;
+            mProgressDialog.dismiss();
+        }
     }
 }

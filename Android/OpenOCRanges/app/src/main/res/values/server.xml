@@ -1,3 +1,5 @@
 <resources>
-    <string name="server">https://mccg15.herokuapp.com/</string>
+    <string name="localServer">http://130.233.84.81:8080/</string>
+    <string name="server"> http://mcc2016g15p2.duckdns.org/</string>
+
 </resources>

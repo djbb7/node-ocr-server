@@ -19,6 +19,9 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONObject;
 
 import java.io.IOException;
 
@@ -188,33 +191,37 @@ public class LoginActivity extends AppCompatActivity {
 
         @Override
         protected Boolean doInBackground(Void... params) {
+            //to make login easier, should be removed at the end of the project
+            //String login_body = "{\"username\":\"" + mUsername + "\",\"password\":\"" + mPassword + "\"}";
 
-            String login_body = "{\"username\":\"" + mUsername + "\",\"password\":\"" + mPassword + "\"}";
+
+            String login_body = "{\"username\":\"" + "peterpan" + "\",\"password\":\"" + "dreamisover" + "\"}";
             String login = "users/login";
-            //String server_url = getString(R.string.server);
+            String server_url = getString(R.string.server);
+            final String responseMessage;
             try {
                 //requests server to approve username/password
-                //  Response response = post(server_url + login, login_body);
-                // code = response.code();
-
-
-                //if (code == 200) {
-                //   JSONObject myjson = new JSONObject(response.body().string().toString());
-                //   mToken = myjson.getString("token");}
-                if (true) {
-
+                Response response = post(server_url + login, login_body);
+                code = response.code();
+                responseMessage=response.message();
+                if (code == 200) {
+                    JSONObject myjson = new JSONObject(response.body().string().toString());
+                    mToken = myjson.getString("token");
                 } else {
                     return false;
                 }
-            } catch (
-                    Exception i
-                    )
-
-            {
+            } catch (Exception i) {
                 i.printStackTrace();
                 return false;
             }
+            runOnUiThread(new Runnable() {
+                public void run() {
+                    Toast.makeText(LoginActivity.this, responseMessage, Toast.LENGTH_LONG).show();
+                }
+            });
+
             return true;
+
         }
 
         @Override
@@ -225,9 +232,9 @@ public class LoginActivity extends AppCompatActivity {
             //if server responds with 200 MainActivity is called otherwise show error
             if (success) {
                 Intent i = new Intent(LoginActivity.this, MainActivity.class);
-                // i.putExtra("token", mToken);
+                i.putExtra("token", mToken);
                 startActivity(i);
-            } else if (code == 401) {
+            } else if (code == 404) {
                 mPasswordView.setError("Either username or password is incorrect!");
                 mPasswordView.requestFocus();
             } else {

@@ -16,9 +16,20 @@ import android.widget.Toast;
 
 import com.facebook.drawee.backends.pipeline.Fresco;
 
+import java.io.IOException;
+
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
 public class MainActivity extends AppCompatActivity {
     private ImageButton mReadButton;
     private Button mLogoutButton;
+
+    public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    OkHttpClient client = new OkHttpClient();
 
     //Variables for Logout
     private UserLogoutTask mAuthTask = null;
@@ -34,11 +45,15 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
+        //get Token from previous activity
+        mToken = getIntent().getStringExtra("token");
+
         mReadButton = (ImageButton) findViewById(R.id.read);
         mReadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(MainActivity.this, TakePictureActivity.class);
+                i.putExtra("token", mToken);
                 startActivity(i);
             }
         });
@@ -70,15 +85,15 @@ public class MainActivity extends AppCompatActivity {
         mAuthTask.execute((Void) null);
     }
 
-//    public Response post(String url) throws IOException {
-//        RequestBody body = RequestBody.create(JSON, "");
-//        Request request = new Request.Builder()
-//                .url(url)
-//                .addHeader("Authorization", mToken)
-//                .post(body)
-//                .build();
-//        return client.newCall(request).execute();
-//    }
+public Response post(String url) throws IOException {
+        RequestBody body = RequestBody.create(JSON, "");
+        Request request = new Request.Builder()
+               .url(url)
+               .addHeader("Authorization", mToken)
+               .post(body)
+                .build();
+        return client.newCall(request).execute();
+    }
 
     /**
      * Represents an asynchronous logout task used to logout the user, make token invalid
@@ -89,14 +104,13 @@ public class MainActivity extends AppCompatActivity {
         protected Boolean doInBackground(Void... params) {
 
             try {
-                //String server_url = getString(R.string.server);
-                //Response response = post(server_url + "users/logout");
-                //int code = response.code();
-                //if (code == 200) {
+                String server_url = getString(R.string.server);
+                Response response = post(server_url + "users/logout/");
+                int code = response.code();
+                if (code == 200) {
                     return true;
-                //} else {
-                  //  return false;
-                //}
+                } else {return false;
+                }
             } catch (Exception i) {
                 i.printStackTrace();
                 return false;
