@@ -72,9 +72,7 @@ public class ProcessOcrActivity extends Activity {
 
         //View for taken picture
         mPictureView = (CropImageView) findViewById(R.id.picture_view);
-        mPictureView.mPortrait = false;
         if (getIntent().getStringExtra("mOrientation").equals("1")) {
-            mPictureView.mPortrait = true;
             mPictureUri = Uri.parse(getIntent().getStringExtra("mPictureUri"));
             mPictureView.setImageUriAsync(mPictureUri);
         } else if (mPictureUriList != null && mPictureUriList.length == 1) {

@@ -7,6 +7,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.hardware.Camera;
 import android.net.Uri;
 import android.os.Build;
@@ -30,9 +33,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
-import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
 
 import java.io.File;
@@ -42,6 +43,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+
+;
 
 public class TakePictureActivity extends AppCompatActivity {
 
@@ -257,9 +260,6 @@ public class TakePictureActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
             return;
         }
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        AppIndex.AppIndexApi.start(client, getIndexApiAction());
     }
 
     private Camera.PictureCallback mPicture = new Camera.PictureCallback() {
@@ -274,10 +274,21 @@ public class TakePictureActivity extends AppCompatActivity {
                 return;
             }
 
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inScaled = true;
+            Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length, options);
+            Matrix matrix = new Matrix();
+
+            matrix.postRotate(90);
+
+
+
+            Bitmap rotatedBitmap = Bitmap.createBitmap(bitmap , 0, 0, bitmap .getWidth(), bitmap .getHeight(), matrix, true);
             try {
-                FileOutputStream fos = new FileOutputStream(pictureFile);
-                fos.write(data);
-                fos.close();
+                FileOutputStream out = new FileOutputStream(pictureFile);
+                rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, out);
+                out.flush();
+                out.close();
             } catch (FileNotFoundException e) {
                 Log.d(TAG, "File not found: " + e.getMessage());
             } catch (IOException e) {
@@ -290,7 +301,6 @@ public class TakePictureActivity extends AppCompatActivity {
             i.putExtra("mOrientation", "" + getResources().getConfiguration().orientation);
 
             startActivity(i);
-            finish();
         }
     };
 
@@ -371,29 +381,11 @@ public class TakePictureActivity extends AppCompatActivity {
         menuHelper.show();
     }
 
-    /**
-     * ATTENTION: This was auto-generated to implement the App Indexing API.
-     * See https://g.co/AppIndexing/AndroidStudio for more information.
-     */
-    public Action getIndexApiAction() {
-        Thing object = new Thing.Builder()
-                .setName("TakePicture Page") // TODO: Define a title for the content shown.
-                // TODO: Make sure this auto-generated URL is correct.
-                .setUrl(Uri.parse("http://[ENTER-YOUR-URL-HERE]"))
-                .build();
-        return new Action.Builder(Action.TYPE_VIEW)
-                .setObject(object)
-                .setActionStatus(Action.STATUS_TYPE_COMPLETED)
-                .build();
-    }
 
     @Override
     public void onStop() {
         super.onStop();
 
-        // ATTENTION: This was auto-generated to implement the App Indexing API.
-        // See https://g.co/AppIndexing/AndroidStudio for more information.
-        AppIndex.AppIndexApi.end(client, getIndexApiAction());
         client.disconnect();
     }
 
@@ -440,11 +432,8 @@ public class TakePictureActivity extends AppCompatActivity {
             //now, recreate the camera preview
             try {
                 mCamera.setPreviewDisplay(mHolder);
-                if (getResources().getConfiguration().orientation == 1) {
                     mCamera.setDisplayOrientation(90);
-                } else {
-                    mCamera.setDisplayOrientation(180);
-                }
+
                 mCamera.startPreview();
             } catch (IOException e) {
                 Log.d("ERROR", "Camera error on surfaceChanged " + e.getMessage());
