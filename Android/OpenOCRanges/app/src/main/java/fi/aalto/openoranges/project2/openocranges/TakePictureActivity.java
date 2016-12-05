@@ -57,7 +57,7 @@ public class TakePictureActivity extends AppCompatActivity {
     private int MY_PERMISSIONS_REQUEST_CAMERA;
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE;
     private Uri mPictureUri;
-    private String mOcrOption = "Local";
+    private String mOcrOption = "Remote";
     private static final String TAG = "TakePictureActivity";
     public static final int MEDIA_TYPE_IMAGE = 1;
 
@@ -246,10 +246,14 @@ public class TakePictureActivity extends AppCompatActivity {
 
     @Override
     protected void onStart() {
-        super.onStart();// ATTENTION: This was auto-generated to implement the App Indexing API.
-// See https://g.co/AppIndexing/AndroidStudio for more information.
-        client.connect();
+        super.onStart();
+        //Write on storage permission
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
 
+            // No explanation needed, we can request the permission.
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
+            return;
+        }
         //Camera permission
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
 
@@ -258,13 +262,7 @@ public class TakePictureActivity extends AppCompatActivity {
             return;
         }
 
-        //Write on storage permission
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
 
-            // No explanation needed, we can request the permission.
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
-            return;
-        }
     }
 
     private Camera.PictureCallback mPicture = new Camera.PictureCallback() {

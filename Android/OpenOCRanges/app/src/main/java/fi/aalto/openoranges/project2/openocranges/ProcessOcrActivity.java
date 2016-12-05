@@ -55,6 +55,7 @@ public class ProcessOcrActivity extends Activity {
     private Button mRetake;
     private Button mAddPicture;
     private Button mProcessOcr;
+
     private CropImageView mPictureView;
     private Uri mPictureUri;
     private String[] mPictureUriList;
@@ -62,7 +63,7 @@ public class ProcessOcrActivity extends Activity {
     private static final String TAG = "ProcessOcrActivity";
     TextView textView;
     public static final String lang = "eng";
-    public static final String DATA_PATH = Environment.getExternalStorageDirectory().toString() + "/OCR/";
+    public static final String DATA_PATH = Environment.getExternalStorageDirectory().toString() + "/OpenOCRanges/";
     public static final String path = Environment.getExternalStorageDirectory().toString() + "/OpenTxtFiles";
     private ProgressDialog mProgressDialog;
 
@@ -148,9 +149,8 @@ public class ProcessOcrActivity extends Activity {
             } catch (IOException e) {
                 // Log.e(TAG, "Was unable to copy " + lang + " traineddata " + e.toString());
             }
-
-
         }
+
         mTessOCR = new TessOCR();
 
 
@@ -514,7 +514,8 @@ public class ProcessOcrActivity extends Activity {
                 //if the code is 202 wait for the VM to get started
                 if (code == 200) {
                     final JSONObject myjson = new JSONObject(response.body().string().toString());
-                    mTransactionID = myjson.getString("id");
+                    mTransactionID=  myjson.getJSONObject("transaction").get("id").toString();
+
                     return true;
                 } else {
                     return false;

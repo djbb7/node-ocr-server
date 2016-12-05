@@ -1,13 +1,16 @@
 package fi.aalto.openoranges.project2.openocranges;
 
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
@@ -37,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
     private View mListView;
     private String mToken;
 
+    private int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
         Fresco.initialize(this);
 
         setContentView(R.layout.activity_main);
+
 
         //get Token from previous activity
         mToken = getIntent().getStringExtra("token");
@@ -71,6 +77,18 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+
+            // No explanation needed, we can request the permission.
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+            return;
+        }
+    }
+
+
     //Logout activity
     private void attemptLogout() {
         if (mAuthTask != null) {
@@ -85,12 +103,12 @@ public class MainActivity extends AppCompatActivity {
         mAuthTask.execute((Void) null);
     }
 
-public Response post(String url) throws IOException {
+    public Response post(String url) throws IOException {
         RequestBody body = RequestBody.create(JSON, "");
         Request request = new Request.Builder()
-               .url(url)
-               .addHeader("Authorization", mToken)
-               .post(body)
+                .url(url)
+                .addHeader("Authorization", mToken)
+                .post(body)
                 .build();
         return client.newCall(request).execute();
     }
@@ -109,7 +127,8 @@ public Response post(String url) throws IOException {
                 int code = response.code();
                 if (code == 200) {
                     return true;
-                } else {return false;
+                } else {
+                    return false;
                 }
             } catch (Exception i) {
                 i.printStackTrace();
@@ -175,5 +194,28 @@ public Response post(String url) throws IOException {
             mListView.setVisibility(show ? View.GONE : View.VISIBLE);
         }
     }
+
+    //Permission handling
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE) {
+            for (int i = 0; i < permissions.length; i++) {
+                String permission = permissions[i];
+                int grantResult = grantResults[i];
+
+                if (permission.equals(Manifest.permission.READ_EXTERNAL_STORAGE)) {
+                    if (grantResult == PackageManager.PERMISSION_GRANTED) {
+
+                    } else {
+
+                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
+                    }
+                }
+            }
+        }
+    }
+
 }
 

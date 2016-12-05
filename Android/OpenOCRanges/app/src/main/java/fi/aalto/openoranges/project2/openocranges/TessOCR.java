@@ -21,7 +21,7 @@ public class TessOCR {
 
         mTess = new TessBaseAPI();
        // AssetManager assetManager=
-        String datapath = Environment.getExternalStorageDirectory() + "/DemoOCR/";
+        String datapath = Environment.getExternalStorageDirectory() + "/OpenOCRanges/";
         String language = "eng";
        // AssetManager assetManager = getAssets();
         File dir = new File(datapath + "/tessdata/");
