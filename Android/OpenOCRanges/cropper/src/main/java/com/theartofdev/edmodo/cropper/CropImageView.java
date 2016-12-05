@@ -83,7 +83,6 @@ public class CropImageView extends FrameLayout {
 
     public int mDegreesRotated;
 
-    public boolean mPortrait = false;
     public boolean mFromGallery = false;
 
     private int mLayoutWidth;
@@ -828,13 +827,8 @@ public class CropImageView extends FrameLayout {
             setBitmap(result.bitmap, true);
             mLoadedImageUri = result.uri;
             mLoadedSampleSize = result.loadSampleSize;
+            mDegreesRotated= result.degreesRotated;
 
-            if (mPortrait) {
-                mDegreesRotated = 90;
-                mPortrait =false;
-            }else {
-                mDegreesRotated= result.degreesRotated;
-            }
 
         }
 
