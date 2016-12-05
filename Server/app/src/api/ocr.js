@@ -111,7 +111,7 @@ export default ({ config }, upload) => {
 	})
 
 	ocr.get('/transaction/:id', check_user, (req, res) => {
-		var transactionId = req.params.id;
+		let transactionId = req.params.id;
 		Transaction.findById(transactionId).populate('files').exec((err, transaction) => {
 			// CastErrors are ignored since they'll result in 404 in next step
 			if(err && err.name !== 'CastError')
@@ -132,26 +132,7 @@ export default ({ config }, upload) => {
 				return;
 			}
 
-			var response = {
-				files: [],
-				createdAt: transaction.createdAt,
-				finishedAt: transaction.finishedAt,
-				duration: (transaction.finishedAt - transaction.createdAt) / 1000
-			}
-
-			// Craft list of files and their thumbnails and images
-			transaction.files.forEach(file => {
-				response.files.push({
-					fileName : file.fileName,
-					extractedText: file.extractedText,
-					error: file.error,
-					processingStarted: file.processingStarted,
-					processingFinished: file.processingFinished,
-					processingTime: (file.processingFinished - file.processingStarted) / 1000,
-					thumbnailUrl: '/ocr/thumb/' + file._id,
-					imageUrl: '/ocr/image/' + file.image
-				});
-			});
+			let response = getTransactionJSON(transaction);
 
 			res.json(response);
 		});
@@ -204,8 +185,7 @@ function process(transaction, file) {
 	});
 }
 
-function checkCompletion(transaction)
-{
+function checkCompletion(transaction) {
 	// Check if transaction finished by completing processing of this file
 	if(transaction.finishedAt !== null)
 		console.log('Transaction has already been finished');
@@ -220,4 +200,31 @@ function checkCompletion(transaction)
 		transaction.finishedAt = Date.now();
 		transaction.save();
 	}
+}
+
+export function getTransactionJSON(transaction) {
+	var response = {
+		files: [],
+		createdAt: transaction.createdAt,
+		finishedAt: transaction.finishedAt,
+		duration: (transaction.finishedAt - transaction.createdAt) / 1000,
+		extractedText: ""
+	}
+
+	// Craft list of files and their thumbnails and images
+	transaction.files.forEach(file => {
+		response.files.push({
+			fileName : file.fileName,
+			extractedText: file.extractedText,
+			error: file.error,
+			processingStarted: file.processingStarted,
+			processingFinished: file.processingFinished,
+			processingTime: (file.processingFinished - file.processingStarted) / 1000,
+			thumbnailUrl: '/ocr/thumb/' + file._id,
+			imageUrl: '/ocr/image/' + file.image
+		});
+		response.extractedText += file.extractedText + "\n";
+	});
+
+	return response;
 }
