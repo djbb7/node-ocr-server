@@ -401,7 +401,7 @@ public class TakePictureActivity extends AppCompatActivity {
 
         public CameraView(Context context, Camera camera) {
             super(context);
-
+//asfaf
             mCamera = camera;
             mCamera.setDisplayOrientation(90);
             //set camera to continually auto-focus
