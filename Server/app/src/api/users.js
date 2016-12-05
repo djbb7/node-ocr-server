@@ -72,14 +72,15 @@ export default ({ config }) => {
  	}, (err, req, res, next) => { res.status(err.code).json(err); });
 
 	users.post('/logout', check_user, function( req, res ) {
-		console.log('Logout');
-		console.log(req.user);
 
-		// Delete session req.session
+		Session.remove({token: req.get('Authorization')}).exec((err) => {
+			if (err) {
+				res.status(500).send("Could not delete session.");
+			}
 
-		// TODO: check token is in DB
+			res.sendStatus(200);
+		});
 
-		// TODO: delete token from DB
 	});
 
 	return users;
