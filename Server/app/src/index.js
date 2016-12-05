@@ -1,4 +1,5 @@
 import https from 'https';
+import http from 'http';
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
@@ -11,12 +12,6 @@ import history from './api/history';
 import { version } from '../package.json';
 import multer from 'multer';
 
-// Setup self-signed certificate
-const options = {
-	key: fs.readFileSync(__dirname + '/../ssl/key.pem'),
-	cert: fs.readFileSync(__dirname + '/../ssl/cert.pem')
-};
-
 // setup middleware for handling multiform/form-data
 let memoryStorage = multer.memoryStorage();
 let upload = multer({
@@ -26,7 +21,11 @@ let upload = multer({
 // setup mongodb connection
 mongoose.Promise = global.Promise;
 mongoose.set('debug', true);
-mongoose.connect(config.database);
+if (process.env.MONGODB_URL) {
+	mongoose.connect(process.env.MONGODB_URL);
+} else {
+	mongoose.connect(config.database);
+}
 
 let app = express();
 
@@ -48,7 +47,18 @@ app.get('/', (req, res) => {
 	res.json({ version });
 });
 
-app.server = https.createServer(options, app);
+if (process.env.USE_SSL) {
+	// Setup self-signed certificate
+	const options = {
+		key: fs.readFileSync(__dirname + '/../ssl/key.pem'),
+		cert: fs.readFileSync(__dirname + '/../ssl/cert.pem')
+	};
+
+	app.server = https.createServer(options, app);
+} else {
+	app.server = http.createServer(app);
+}
+
 
 app.server.listen(process.env.PORT || config.port);
 
