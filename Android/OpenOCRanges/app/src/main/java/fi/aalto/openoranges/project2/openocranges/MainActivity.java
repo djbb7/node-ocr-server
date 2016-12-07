@@ -5,6 +5,7 @@ import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
@@ -15,6 +16,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -24,6 +26,8 @@ import android.widget.Toast;
 
 import com.facebook.drawee.backends.pipeline.Fresco;
 import com.facebook.drawee.view.SimpleDraweeView;
+import com.facebook.imagepipeline.backends.okhttp3.OkHttpImagePipelineConfigFactory;
+import com.facebook.imagepipeline.core.ImagePipelineConfig;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -34,11 +38,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import okhttp3.Authenticator;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import okhttp3.Route;
 
 public class MainActivity extends AppCompatActivity {
     private ImageButton mReadButton;
@@ -55,19 +61,36 @@ public class MainActivity extends AppCompatActivity {
     private View mListView;
     private String mToken;
 
-    private HistoryList mHistoryList= null;
+    private HistoryList mHistoryList = null;
 
     private ArrayList<JSONObject> arrays = null;
-    private List<OcrResult> myOcrResults = new ArrayList<>();
+    private List<OcrResult> myOcrResultsList = new ArrayList<>();
 
     private int MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //initialize fresco for downloading icon images
-        Fresco.initialize(this);
 
+
+        Context context= getApplicationContext();
+        OkHttpClient okHttpClient = new OkHttpClient();
+
+        /** An authenticator that knows no credentials and makes no attempt to authenticate. */
+        Authenticator authenticator = new Authenticator() {
+            @Override public Request authenticate(Route route, Response response) {
+                return response.request().newBuilder().header("Authorization", mToken).build();
+            }
+        };
+        client.newBuilder().authenticator(authenticator);
+     try {
+         ImagePipelineConfig config = OkHttpImagePipelineConfigFactory
+                 .newBuilder(context, okHttpClient)
+                 .build();
+         Fresco.initialize(context, config);
+     }catch(Exception e){
+         e.printStackTrace();
+     }
         setContentView(R.layout.activity_main);
 
 
@@ -84,8 +107,6 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(i);
             }
         });
-
-
 
 
         mLogoutButton = (Button) findViewById(R.id.logout);
@@ -113,7 +134,22 @@ public class MainActivity extends AppCompatActivity {
         showProgress(true);
         mHistoryList = new HistoryList();
         mHistoryList.execute((Void) null);
+
+        registerClickCallback();
     }
+
+    //Method for starting application and register which app is clicked
+    private void registerClickCallback() {
+        ListView list = (ListView) findViewById(R.id.oo_AppsListView);
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View viewClicked, int position, long id) {
+                OcrResult clickedApp = myOcrResultsList.get(position);
+                Toast.makeText(MainActivity.this, "" + clickedApp.getCreatedAt(), Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
 
     //adding the applications in the list to the ListView
     private void addingAppsToListView() {
@@ -122,12 +158,14 @@ public class MainActivity extends AppCompatActivity {
         list.setAdapter(adapter);
     }
 
+
+
     /**
      * class to add applications to the list
      */
     private class ListAdapter extends ArrayAdapter<OcrResult> {
         public ListAdapter() {
-            super(MainActivity.this, R.layout.item_view, myOcrResults);
+            super(MainActivity.this, R.layout.item_view, myOcrResultsList);
         }
 
         @Override
@@ -137,10 +175,10 @@ public class MainActivity extends AppCompatActivity {
             if (itemView == null)
                 itemView = getLayoutInflater().inflate(R.layout.item_view, parent, false);
             //finding app in the list on position
-            OcrResult currentResult = myOcrResults.get(position);
+            OcrResult currentResult = myOcrResultsList.get(position);
 
             //Fill the view with the apps using inflater
-            Uri uri = Uri.parse(getString(R.string.serverWithoutSlash)+""+currentResult.getThumbnailUrl());
+            Uri uri = Uri.parse(getString(R.string.serverWithoutSlash) + "" + currentResult.getThumbnailUrl());
             SimpleDraweeView view = (SimpleDraweeView) itemView.findViewById(R.id.imageView);
             try {
                 view.setImageURI(uri);
@@ -151,7 +189,8 @@ public class MainActivity extends AppCompatActivity {
 
             //Fill the textview with the name of the app
             TextView nameText = (TextView) itemView.findViewById(R.id.nameText);
-            nameText.setText(currentResult.getExtractedText());
+            String filename = currentResult.getCreatedAt();
+            nameText.setText(filename);
 
             return itemView;
         }
@@ -159,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
 
     //fill arraylist with the apps, received from the server
     private void populateAppList() {
-        myOcrResults = new ArrayList<>();
+        myOcrResultsList = new ArrayList<>();
         for (int j = 0; j < arrays.size(); j++) {
             String extractedText = null;
             Object error = null;
@@ -175,18 +214,18 @@ public class MainActivity extends AppCompatActivity {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-                try {
-                    extractedText = arrays.get(j).getString("extractedText");
-                    processingStarted = arrays.get(j).getString("processingStarted");
-                    processingFinished = arrays.get(j).getString("processingFinished");
-                    processingTime = arrays.get(j).getDouble("processingTime");
-                    thumbnailUrl = arrays.get(j).getString("thumbnailUrl");
-                    imageUrl = arrays.get(j).getString("imageUrl");
-                    createdAt = arrays.get(j).getString("createdAt");
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                myOcrResults.add(new OcrResult(extractedText, processingStarted, processingFinished, processingTime, thumbnailUrl, imageUrl, createdAt));
+            try {
+                extractedText = arrays.get(j).getString("extractedText");
+                processingStarted = arrays.get(j).getString("processingStarted");
+                processingFinished = arrays.get(j).getString("processingFinished");
+                processingTime = arrays.get(j).getDouble("processingTime");
+                thumbnailUrl = arrays.get(j).getString("thumbnailUrl");
+                imageUrl = arrays.get(j).getString("imageUrl");
+                createdAt = arrays.get(j).getString("createdAt");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            myOcrResultsList.add(new OcrResult(extractedText, processingStarted, processingFinished, processingTime, thumbnailUrl, imageUrl, createdAt));
 
         }
         showProgress(false);
@@ -202,9 +241,11 @@ public class MainActivity extends AppCompatActivity {
                 .build();
         return client.newCall(request).execute();
     }
+
     public Response getList(String url) throws IOException {
         return get(url);
     }
+
     /**
      * Represents an asynchronous task used to get a list of applications from the server
      */
@@ -214,7 +255,7 @@ public class MainActivity extends AppCompatActivity {
         protected ArrayList<JSONObject> doInBackground(Void... params) {
 
             try {
-                String server_url = getString(R.string.server)+"history";
+                String server_url = getString(R.string.server) + "history";
                 Response response = getList(server_url);
                 int code = response.code();
                 if (code == 200) {
@@ -238,11 +279,11 @@ public class MainActivity extends AppCompatActivity {
                             Iterator i1 = another_json_object.keys();
                             Iterator i2 = json_results.keys();
                             String tmp_key;
-                            while(i1.hasNext()) {
+                            while (i1.hasNext()) {
                                 tmp_key = (String) i1.next();
                                 mergedObj.put(tmp_key, another_json_object.get(tmp_key));
                             }
-                            while(i2.hasNext()) {
+                            while (i2.hasNext()) {
                                 tmp_key = (String) i2.next();
                                 mergedObj.put(tmp_key, json_results.get(tmp_key));
                             }
@@ -263,8 +304,6 @@ public class MainActivity extends AppCompatActivity {
             }
             return arrays;
         }
-
-
 
 
         protected void onPostExecute(ArrayList<JSONObject> list) {
