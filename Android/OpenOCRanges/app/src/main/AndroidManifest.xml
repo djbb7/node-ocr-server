@@ -48,6 +48,17 @@
             android:label="ProcessOcr"
             android:theme="@style/AppTheme">
         </activity>
+        <activity
+            android:name=".LocalActivity"
+            android:label="Local"
+            android:theme="@style/AppTheme"
+            android:screenOrientation="landscape">
+        </activity>
+        <activity
+            android:name=".BenchmarkActivity"
+            android:label="Benchmark"
+            android:theme="@style/AppTheme">
+        </activity>
 
     </application>
 

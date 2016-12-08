@@ -123,12 +123,12 @@ public class TakePictureActivity extends AppCompatActivity {
                  * gallery (ACTION_GET_CONTENT).<br/>
                  * All possible sources are added to the intent chooser.
 
-                Intent intent = new Intent();
-                intent.setType("image/*");
-                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                intent.setAction(Intent.ACTION_GET_CONTENT);
-                startActivityForResult(Intent.createChooser(intent, "Select Picture"), 200);
-*/
+                 Intent intent = new Intent();
+                 intent.setType("image/*");
+                 intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                 intent.setAction(Intent.ACTION_GET_CONTENT);
+                 startActivityForResult(Intent.createChooser(intent, "Select Picture"), 200);
+                 */
                 Intent intent;
 
                 if (Build.VERSION.SDK_INT < 19) {
@@ -239,7 +239,6 @@ public class TakePictureActivity extends AppCompatActivity {
             i.putExtra("mPictureUriList", mImageUriList);
 
             startActivity(i);
-            finish();
 
         }
     }
@@ -298,13 +297,22 @@ public class TakePictureActivity extends AppCompatActivity {
                 Log.d(TAG, "Error accessing file: " + e.getMessage());
             }
 
-            Intent i = new Intent(TakePictureActivity.this, ProcessOcrActivity.class);
-            i.putExtra("mPictureUri", mPictureUri.toString());
-            i.putExtra("mModus", mOcrOption);
-            i.putExtra("token", mToken);
-            i.putExtra("mOrientation", "" + getResources().getConfiguration().orientation);
+            if (mOcrOption.equals("Benchmark")){
+                Intent i = new Intent(TakePictureActivity.this, BenchmarkActivity.class);
+                i.putExtra("mPictureUri", mPictureUri.toString());
+                i.putExtra("token", mToken);
+                startActivity(i);
+                finish();
+            }
+            else{
+                Intent i = new Intent(TakePictureActivity.this, ProcessOcrActivity.class);
+                i.putExtra("mPictureUri", mPictureUri.toString());
+                i.putExtra("mModus", mOcrOption);
+                i.putExtra("token", mToken);
+                i.putExtra("mOrientation", "" + getResources().getConfiguration().orientation);
 
-            startActivity(i);
+                startActivity(i);
+            }
         }
     };
 
@@ -360,19 +368,16 @@ public class TakePictureActivity extends AppCompatActivity {
                     case R.id.local:
                         mModus.setText("Modus: Local");
                         mOcrOption = "Local";
-                        Toast.makeText(TakePictureActivity.this, "Local", Toast.LENGTH_SHORT).show();
                         ;
                         return true;
                     case R.id.remote:
                         mModus.setText("Modus: Remote");
                         mOcrOption = "Remote";
-                        Toast.makeText(TakePictureActivity.this, "Remote", Toast.LENGTH_SHORT).show();
                         ;
                         return true;
                     case R.id.benchmark:
                         mModus.setText("Modus: Benchmark");
                         mOcrOption = "Benchmark";
-                        Toast.makeText(TakePictureActivity.this, "Benchmark", Toast.LENGTH_SHORT).show();
                         return true;
                     default:
                         return false;
@@ -436,7 +441,7 @@ public class TakePictureActivity extends AppCompatActivity {
             //now, recreate the camera preview
             try {
                 mCamera.setPreviewDisplay(mHolder);
-                    mCamera.setDisplayOrientation(90);
+                mCamera.setDisplayOrientation(90);
 
                 mCamera.startPreview();
             } catch (IOException e) {

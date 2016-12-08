@@ -1,5 +1,8 @@
 package fi.aalto.openoranges.project2.openocranges;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
@@ -53,7 +56,6 @@ import okhttp3.Response;
 public class ProcessOcrActivity extends Activity {
 
     private Button mRetake;
-    private Button mAddPicture;
     private Button mProcessOcr;
 
     private CropImageView mPictureView;
@@ -61,18 +63,21 @@ public class ProcessOcrActivity extends Activity {
     private String[] mPictureUriList;
     private TessOCR mTessOCR;
     private static final String TAG = "ProcessOcrActivity";
-    TextView textView;
+    private TextView textView;
     public static final String lang = "eng";
     public static final String DATA_PATH = Environment.getExternalStorageDirectory().toString() + "/OpenOCRanges/";
     public static final String path = Environment.getExternalStorageDirectory().toString() + "/OpenTxtFiles";
-    private ProgressDialog mProgressDialog;
 
     private String mToken;
     private String mModus;
+    private String mText;
 
     private uploadImagesTask mUploadImagesTask = null;
 
     private String mTransactionID;
+
+    private View mProgressView;
+    private View mListView;
 
     //For the communication with the server
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
@@ -90,7 +95,6 @@ public class ProcessOcrActivity extends Activity {
         } catch (Exception e) {
 
         }
-        //final SelectedPictures mSelectedPictures = ((SelectedPictures) getApplicationContext());
 
         //get Token from previous activity
         mToken = getIntent().getStringExtra("token");
@@ -165,14 +169,6 @@ public class ProcessOcrActivity extends Activity {
             }
         });
 
-        //Button to adding a picture to OCR
-        mAddPicture = (Button) findViewById(R.id.AddPicture);
-        mAddPicture.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivityForResult(getPickImageChooserIntent(), 200);
-            }
-        });
 
         //Button to process OCR
         mProcessOcr = (Button) findViewById(R.id.ProcessOcr);
@@ -181,16 +177,12 @@ public class ProcessOcrActivity extends Activity {
             public void onClick(View view) {
                 //if remote modus is chosen do ocr processing on server
                 if (mModus.equals("Remote")) {
-                    if (mProgressDialog == null) {
-                        mProgressDialog = ProgressDialog.show(getApplicationContext(), "Processing",
-                                "Please wait...", true);
-                        // mResult.setVisibility(V.ViewISIBLE);
-                    } else {
-                        mProgressDialog.show();
-                    }
+                    showProgress(true);
                     mUploadImagesTask = new uploadImagesTask();
                     mUploadImagesTask.execute((Void) null);
-                } else {
+                }
+                else if (mModus.equals("Local")) {
+                    showProgress(true);
                     try {
                         Bitmap cropped = mPictureView.getCroppedImage(500, 500);
                         if (cropped != null)
@@ -202,6 +194,9 @@ public class ProcessOcrActivity extends Activity {
                         e.printStackTrace();
                     }
                 }
+                else{
+                    //Not possible
+                }
 
             }
         });
@@ -209,20 +204,13 @@ public class ProcessOcrActivity extends Activity {
         //Creates Directory for saving the text files from OCR
         File dir = new File(path);
         dir.mkdirs();
+
+        mListView = findViewById(R.id.ResultView);
+        mProgressView = findViewById(R.id.load_progress);
     }
 
 
     public void doOCR(final Bitmap bitmap) {
-        if (mProgressDialog == null) {
-            mProgressDialog = ProgressDialog.show(this, "Processing",
-                    "Please wait...", true);
-            // mResult.setVisibility(V.ViewISIBLE);
-
-
-        } else {
-            mProgressDialog.show();
-        }
-
         Thread t = new Thread(new Runnable() {
             public void run() {
 
@@ -235,10 +223,19 @@ public class ProcessOcrActivity extends Activity {
                         // TODO Auto-generated method stub
                         if (result != null && !result.equals("")) {
                             String s = result.trim();
-                            textView.setText(result);
+                            mText = result;
+                            Intent i = new Intent(ProcessOcrActivity.this, LocalActivity.class);
+                            i.putExtra("mPictureUri", mPictureUri.toString());
+                            i.putExtra("token", mToken);
+                            i.putExtra("text", mText);
+                            startActivity(i);
+                            finish();
+                        }
+                        else {
+                            textView.setText("Any text could be identified. Please retake picture or zoom closer to text!");
                         }
 
-                        mProgressDialog.dismiss();
+                        showProgress(false);
                     }
 
                 });
@@ -252,70 +249,6 @@ public class ProcessOcrActivity extends Activity {
             t.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }
-
-        /**This is the code how it was described in the video:https://www.youtube.com/watch?v=x3pyyQbwLko
-         * but it is not working...
-
-         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-         File file = new File(path + "/" + timeStamp + ".txt");
-         try {
-         String [] saveText = String.valueOf(textView.getText()).split(System.getProperty("line.seperator"));
-         save(file, saveText);
-         } catch (Exception e) {
-         e.printStackTrace();
-         }
-         */
-
-        //Creates a text file properly but the textfile is empty...need to be fixed
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        File file = new File(path + "/" + timeStamp + ".txt");
-        String[] text = new String[1];
-        text[0] = String.valueOf(textView.getText());
-        try {
-            save(file, text);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        File root = new File(path);
-        File gpxfile = new File(root, "yourFileName.txt");
-        try {
-            FileWriter writer = new FileWriter(gpxfile);
-            writer.append(textView.getText().toString());
-            writer.flush();
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-
-    public static void save(File file, String[] data) {
-        FileOutputStream fos = null;
-        try {
-            fos = new FileOutputStream(file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        try {
-            try {
-                for (int i = 0; i < data.length; i++) {
-                    fos.write(data[i].getBytes());
-                    if (i < data.length - 1) {
-                        fos.write("\n".getBytes());
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } finally {
-            try {
-                fos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -530,19 +463,22 @@ public class ProcessOcrActivity extends Activity {
 
         protected void onPostExecute(Boolean success) {
             mUploadImagesTask = null;
-            mProgressDialog.dismiss();
+            showProgress(false);
 
             if (success) {
+                Toast.makeText(ProcessOcrActivity.this, "Transaction successfully processed!", Toast.LENGTH_LONG).show();
+                Intent i = new Intent(ProcessOcrActivity.this, MainActivity.class);
+                i.putExtra("token", mToken);
+                finish();
 
-
-                Toast.makeText(ProcessOcrActivity.this, "SUCCESS!", Toast.LENGTH_LONG).show();
-
-            } else {
+            }
+            else {
                 if (isInternetAvailable == false) {
-                    Toast.makeText(ProcessOcrActivity.this, "Application can not be opened due to missing internet connection!", Toast.LENGTH_LONG).show();
-                    // mLogoutButton.setEnabled(true);
+                    Toast.makeText(ProcessOcrActivity.this, "No processing due to missing internet connection!", Toast.LENGTH_LONG).show();
+                    //mLogoutButton.setEnabled(true);
                     //mRefreshButton.setEnabled(true);
                 } else {
+                    Toast.makeText(ProcessOcrActivity.this, "FAILURE! Please try it again...", Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -550,7 +486,43 @@ public class ProcessOcrActivity extends Activity {
         @Override
         protected void onCancelled() {
             mUploadImagesTask = null;
-            mProgressDialog.dismiss();
+            showProgress(false);
+        }
+    }
+
+    /**
+     * Shows the progress bar
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+    private void showProgress(final boolean show) {
+        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
+        // for very easy animations. If available, use these APIs to fade-in
+        // the progress spinner.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+            mListView.setVisibility(show ? View.GONE : View.VISIBLE);
+            mListView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    mListView.setVisibility(show ? View.GONE : View.VISIBLE);
+                }
+            });
+
+            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            mProgressView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+                }
+            });
+        } else {
+            // The ViewPropertyAnimator APIs are not available, so simply show
+            // and hide the relevant UI components.
+            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            mListView.setVisibility(show ? View.GONE : View.VISIBLE);
         }
     }
 }

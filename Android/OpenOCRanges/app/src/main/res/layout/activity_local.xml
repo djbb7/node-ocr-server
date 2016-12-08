@@ -7,7 +7,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:fitsSystemWindows="true"
-    tools:context="fi.aalto.openoranges.project2.openocranges.MainActivity">
+    tools:context="fi.aalto.openoranges.project2.openocranges.LocalActivity">
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -24,13 +24,12 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:orientation="horizontal">
-                <Button
-                    android:id="@+id/refresh"
+                <ImageView
+                    android:id="@+id/app_icon"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:layout_marginLeft="@dimen/activity_horizontal_margin"
-                    android:background="#00000000"
-                    android:src = "@drawable/refresh_white" />
+                    android:src = "@drawable/icon_ocranges_white" />
 
                 <TextView
                     android:text="@string/app_name"
@@ -48,8 +47,8 @@
                     />
 
                 <Button
-                    android:id="@+id/logout"
-                    android:text="Logout"
+                    android:id="@+id/backToMain"
+                    android:text="History"
                     android:background="@color/colorAccent"
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
@@ -61,42 +60,54 @@
 
         </android.support.design.widget.AppBarLayout>
 
-        <ListView
-            android:id="@+id/oo_AppsListView"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/AppBar" />
-
-        <TextView
-            android:id="@+id/textView"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/AppBar" />
-
-        <ProgressBar
-            android:id="@+id/logout_progress"
-            style="?android:attr/progressBarStyleLarge"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/AppBar"
-            android:layout_marginBottom="8dp"
-            android:visibility="gone" />
-
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:layout_below="@id/AppBar">
 
-        <android.support.design.widget.FloatingActionButton
-            android:id="@+id/importGallery"
-            android:layout_width="55dp"
-            android:layout_height="54dp"
-            android:layout_margin="@dimen/fab_margin"
-            app:layout_anchorGravity="center"
-            app:backgroundTint="#EF6C00"
-            android:src="@drawable/plus"
-            android:layout_gravity="bottom|right"/>
+            <LinearLayout
+                android:id="@+id/ResultView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                >
+
+                <ImageView
+                    android:id="@+id/imageViewResult"
+                    android:layout_width="match_parent"
+                    android:layout_height="350dp"/>
+
+                <TextView
+                    android:id="@+id/textViewResult"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+            </LinearLayout>
+
+            <ProgressBar
+                android:id="@+id/save_progress"
+                style="?android:attr/progressBarStyleLarge"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/AppBar"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone" />
+
+            <Button
+                android:id="@+id/saveTxt"
+                android:text="Save text"
+                android:textColor="#FFFFFF"
+                android:background="@color/colorAccent"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textStyle="bold"
+                android:layout_gravity="bottom|right"
+                android:layout_marginBottom="10dp"
+                android:layout_marginRight="10dp"
+                />
 
         </FrameLayout>
 
     </RelativeLayout>
+
 </LinearLayout>

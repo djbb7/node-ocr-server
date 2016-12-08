@@ -117,6 +117,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        mRefreshButton = (Button) findViewById(R.id.refresh);
+        mRefreshButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mSleeper = new TimeoutOperation();
+                mSleeper.execute((Void) null);
+                showProgress(true);
+                mHistoryList = new HistoryList();
+                mHistoryList.execute((Void) null);
+            }
+        });
+
         mListView = findViewById(R.id.oo_AppsListView);
         mProgressView = findViewById(R.id.logout_progress);
 
