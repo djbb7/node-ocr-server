@@ -50,7 +50,7 @@ public class LocalActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_local);
 
-        //get Token from previous activity
+        //post Token from previous activity
         mToken = getIntent().getStringExtra("token");
         mText = getIntent().getStringExtra("text");
 

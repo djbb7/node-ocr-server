@@ -81,7 +81,7 @@ public class TakePictureActivity extends AppCompatActivity {
         try {
             mCamera = Camera.open();//you can use open(int) to use different cameras
         } catch (Exception e) {
-            Log.d("ERROR", "Failed to get camera: " + e.getMessage());
+            Log.d("ERROR", "Failed to post camera: " + e.getMessage());
         }
 
         if (mCamera != null) {
@@ -90,7 +90,7 @@ public class TakePictureActivity extends AppCompatActivity {
             camera_view.addView(mCameraView);//add the SurfaceView to the layout
         }
 
-        //get Token from previous activity
+        //post Token from previous activity
         mToken = getIntent().getStringExtra("token");
 
         //Button to take picture
@@ -119,7 +119,7 @@ public class TakePictureActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 /**
-                 * Create a chooser intent to select the source to get image from.The source is the
+                 * Create a chooser intent to select the source to post image from.The source is the
                  * gallery (ACTION_GET_CONTENT).<br/>
                  * All possible sources are added to the intent chooser.
 
@@ -239,6 +239,7 @@ public class TakePictureActivity extends AppCompatActivity {
             i.putExtra("mPictureUriList", mImageUriList);
 
             startActivity(i);
+            finish();
 
         }
     }
@@ -409,7 +410,7 @@ public class TakePictureActivity extends AppCompatActivity {
             Camera.Parameters params = mCamera.getParameters();
             params.setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE);
             mCamera.setParameters(params);
-            //get the holder and set this class as the callback, so we can get camera data here
+            //post the holder and set this class as the callback, so we can post camera data here
             mHolder = getHolder();
             mHolder.addCallback(this);
             mHolder.setType(SurfaceHolder.SURFACE_TYPE_NORMAL);
@@ -474,7 +475,7 @@ public class TakePictureActivity extends AppCompatActivity {
                         try {
                             mCamera = Camera.open();//you can use open(int) to use different cameras
                         } catch (Exception e) {
-                            Log.d("ERROR", "Failed to get camera: " + e.getMessage());
+                            Log.d("ERROR", "Failed to post camera: " + e.getMessage());
                         }
 
                         if (mCamera != null) {
@@ -498,7 +499,7 @@ public class TakePictureActivity extends AppCompatActivity {
                         try {
                             mCamera = Camera.open();//you can use open(int) to use different cameras
                         } catch (Exception e) {
-                            Log.d("ERROR", "Failed to get camera: " + e.getMessage());
+                            Log.d("ERROR", "Failed to post camera: " + e.getMessage());
                         }
 
                         if (mCamera != null) {

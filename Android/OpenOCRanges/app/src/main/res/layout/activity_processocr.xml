@@ -14,30 +14,15 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".ProcessOcrActivity">
-
-        <LinearLayout
-            android:id="@+id/ResultView"
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:layout_marginBottom="?attr/actionBarSize">
-
-            <com.theartofdev.edmodo.cropper.CropImageView
-                android:id="@+id/picture_view"
-                android:layout_width="match_parent"
-                android:layout_height="350dp"/>
-
-            <TextView
-                android:id="@+id/editText_view"
-                android:gravity="center"
-                android:text="No OCR processed yet!"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:inputType="textMultiLine"
-                android:ems="10"/>
-
-        </LinearLayout>
-
+            android:layout_height="216dp"
+            android:inputType="textMultiLine"
+            android:ems="10"
+            android:id="@+id/editText_view"
+            android:minHeight="200dp"
+            android:layout_gravity="bottom"
+            />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -66,6 +51,7 @@
                     android:layout_weight="1"
                     />
 
+
                 <Button
                     android:id="@+id/ProcessOcr"
                     android:text="OCR"
@@ -80,6 +66,11 @@
             </LinearLayout>
         </LinearLayout>
 
+        <com.theartofdev.edmodo.cropper.CropImageView
+            android:id="@+id/picture_view"
+            android:layout_width="match_parent"
+            android:layout_height="350dp"
+            android:layout_marginBottom="?android:attr/actionBarSize"/>
         <ProgressBar
             android:id="@+id/load_progress"
             style="?android:attr/progressBarStyleLarge"

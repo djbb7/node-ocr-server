@@ -94,7 +94,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-        //get Token from previous activity
+        //post Token from previous activity
         mToken = getIntent().getStringExtra("token");
 
         mReadButton = (ImageButton) findViewById(R.id.read);
@@ -117,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        mRefreshButton = (Button) findViewById(R.id.refresh);
+        mRefreshButton = (ImageButton) findViewById(R.id.refresh);
         mRefreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -208,8 +208,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    //fill arraylist with the apps, received from the server
-    private void populateAppList() {
+    //fill arraylist with the results of the images, received from the server
+    private void populatOcrList() {
         myOcrResultsList = new ArrayList<>();
         for (int j = 0; j < arrays.size(); j++) {
             String extractedText = null;
@@ -259,7 +259,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Represents an asynchronous task used to get a list of applications from the server
+     * Represents an asynchronous task used to post a list of applications from the server
      */
     public class HistoryList extends AsyncTask<Void, Void, ArrayList<JSONObject>> {
 
@@ -326,7 +326,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 mHistoryList = null;
                 arrays = list;
-                populateAppList();
+                populatOcrList();
             }
         }
 
