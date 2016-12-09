@@ -181,7 +181,7 @@ public class ProcessOcrActivity extends Activity {
                 //if remote modus is chosen do ocr processing on server
                 if (mModus.equals("Remote")) {
                     if (mProgressDialog == null) {
-                        mProgressDialog = ProgressDialog.show(getApplicationContext(), "Processing",
+                        mProgressDialog = ProgressDialog.show(ProcessOcrActivity.this, "Processing",
                                 "Please wait...", true);
                         // mResult.setVisibility(V.ViewISIBLE);
                     } else {

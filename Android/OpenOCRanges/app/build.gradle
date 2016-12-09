@@ -31,15 +31,8 @@ dependencies {
     compile 'com.facebook.fresco:fresco:0.14.1'
     // If your app supports Android versions before Ice Cream Sandwich (API level 14)
     compile 'com.facebook.fresco:animated-base-support:0.14.1'
-    // For animated GIF support
-    compile 'com.facebook.fresco:animated-gif:0.14.1'
-    // For WebP support, including animated WebP
-    compile 'com.facebook.fresco:animated-webp:0.14.1'
-    compile 'com.facebook.fresco:webpsupport:0.14.1'
-    // For WebP support, without animations
-    compile 'com.facebook.fresco:webpsupport:0.14.1'
-    compile project(path: ':tess-two')
-    compile project(path: ':cropper')
+
+    compile 'com.rmtheis:tess-two:6.1.1'
     compile project(path: ':cropper')
 
     compile "com.facebook.fresco:imagepipeline-okhttp3:0.14.1"

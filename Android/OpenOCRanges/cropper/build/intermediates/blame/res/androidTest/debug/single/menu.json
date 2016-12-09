@@ -1,6 +1,10 @@
 [
     {
-        "merged": "C:\\Users\\Neil\\mcc-2016-g15-p2\\Android\\OpenOCRanges\\cropper\\build\\intermediates\\res\\merged\\androidTest\\debug\\menu\\crop_image_menu.xml",
-        "source": "C:\\Users\\Neil\\mcc-2016-g15-p2\\Android\\OpenOCRanges\\cropper\\build\\intermediates\\bundles\\debug\\res\\menu\\crop_image_menu.xml"
+        "merged": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/res/merged/androidTest/debug/menu/crop_image_menu.xml",
+        "source": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/bundles/debug/res/menu/crop_image_menu.xml"
+    },
+    {
+        "merged": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/C:\\Users\\Neil\\mcc-2016-g15-p2\\Android\\OpenOCRanges\\cropper\\build\\intermediates\\res\\merged\\androidTest\\debug\\menu\\crop_image_menu.xml",
+        "source": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/C:\\Users\\Neil\\mcc-2016-g15-p2\\Android\\OpenOCRanges\\cropper\\build\\intermediates\\bundles\\debug\\res\\menu\\crop_image_menu.xml"
     }
 ]
