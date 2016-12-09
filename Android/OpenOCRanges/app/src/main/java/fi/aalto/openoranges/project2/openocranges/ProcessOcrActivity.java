@@ -105,21 +105,7 @@ public class ProcessOcrActivity extends Activity {
         //post Token from previous activity
         mToken = getIntent().getStringExtra("token");
         mModus = getIntent().getStringExtra("mModus");
-
-        //View for taken picture
-        mPictureView = (CropImageView) findViewById(R.id.picture_view);
-        if (getIntent().getStringExtra("mOrientation").equals("1")) {
-            mPictureUri = Uri.parse(getIntent().getStringExtra("mPictureUri"));
-            mPictureUriList = new String[1];
-            mPictureUriList[0] = mPictureUri.toString();
-            mPictureView.setImageUriAsync(mPictureUri);
-        } else if (mPictureUriList != null && mPictureUriList.length == 1) {
-            mPictureUri = Uri.parse(mPictureUriList[0]);
-            mPictureView.setImageUriAsync(mPictureUri);
-        } else {
-            mPictureUri = Uri.parse(mPictureUriList[0]);
-            mPictureView.setImageUriAsync(mPictureUri);
-        }
+        
 
         String[] paths = new String[]{DATA_PATH, DATA_PATH + "tessdata/"};
 
