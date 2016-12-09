@@ -1,7 +1,10 @@
 package fi.aalto.openoranges.project2.openocranges;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -62,7 +65,6 @@ public class ProcessOcrActivity extends Activity {
     public static final String DATA_PATH = Environment.getExternalStorageDirectory().toString() + "/OpenOCRanges/";
     public static final String path = Environment.getExternalStorageDirectory().toString() + "/OpenTxtFiles";
     public static final String path_images = Environment.getExternalStorageDirectory().toString() + "/UploadedImages";
-    private ProgressDialog mProgressDialog;
 
     private String mToken;
     private String mModus;
@@ -72,6 +74,9 @@ public class ProcessOcrActivity extends Activity {
 
     private String mTransactionID;
     private String href;
+
+    private View mProgressView;
+    private View mListView;
 
     //For the communication with the server
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
@@ -156,8 +161,24 @@ public class ProcessOcrActivity extends Activity {
             }
         }
 
-        mTessOCR = new TessOCR();
+        //Creates Directory for saving the text files from OCR
+        File dir = new File(path);
+        dir.mkdirs();
 
+        //View for taken picture
+        mPictureView = (CropImageView) findViewById(R.id.picture_view);
+        if (getIntent().getStringExtra("mOrientation").equals("1")) {
+            mPictureUri = Uri.parse(getIntent().getStringExtra("mPictureUri"));
+            mPictureUriList = new String [1];
+            mPictureUriList[0] = mPictureUri.toString();
+            mPictureView.setImageUriAsync(mPictureUri);
+        } else if (mPictureUriList != null && mPictureUriList.length == 1) {
+            mPictureUri = Uri.parse(mPictureUriList[0]);
+            mPictureView.setImageUriAsync(mPictureUri);
+        } else {
+            mPictureUri = Uri.parse(mPictureUriList[0]);
+            mPictureView.setImageUriAsync(mPictureUri);
+        }
 
         //Button to retake picture
         mRetake = (Button) findViewById(R.id.Retake);
@@ -177,13 +198,7 @@ public class ProcessOcrActivity extends Activity {
             public void onClick(View view) {
                 //if remote modus is chosen do ocr processing on server
                 if (mModus.equals("Remote")) {
-                    if (mProgressDialog == null) {
-                        mProgressDialog = ProgressDialog.show(getApplicationContext(), "Processing",
-                                "Please wait...", true);
-
-                    } else {
-                        mProgressDialog.show();
-                    }
+                    showProgress(true);
                     mUploadImagesTask = new uploadImagesTask();
                     mUploadImagesTask.execute((Void) null);
                 } else {
@@ -202,22 +217,15 @@ public class ProcessOcrActivity extends Activity {
             }
         });
 
-        //Creates Directory for saving the text files from OCR
-        File dir = new File(path);
-        dir.mkdirs();
+        mTessOCR = new TessOCR();
+
+        mProgressView = (View) findViewById(R.id.load_progress);
+        mListView = (View) findViewById(R.id.resultView);
     }
 
 
     public void doOCR(final Bitmap bitmap) {
-        if (mProgressDialog == null) {
-            mProgressDialog = ProgressDialog.show(this, "Processing",
-                    "Please wait...", true);
-            // mResult.setVisibility(V.ViewISIBLE);
-
-
-        } else {
-            mProgressDialog.show();
-        }
+        showProgress(true);
 
         Thread t = new Thread(new Runnable() {
             public void run() {
@@ -242,7 +250,7 @@ public class ProcessOcrActivity extends Activity {
                             finish();
                         }
 
-                        mProgressDialog.dismiss();
+                        showProgress(false);
                     }
 
                 });
@@ -454,7 +462,7 @@ public class ProcessOcrActivity extends Activity {
 
         protected void onPostExecute(Boolean success) {
             mUploadImagesTask = null;
-            mProgressDialog.dismiss();
+            showProgress(false);
 
             if (success) {
 
@@ -470,7 +478,7 @@ public class ProcessOcrActivity extends Activity {
         @Override
         protected void onCancelled() {
             mUploadImagesTask = null;
-            mProgressDialog.dismiss();
+            showProgress(false);
         }
     }
 
@@ -571,7 +579,7 @@ public class ProcessOcrActivity extends Activity {
 
         protected void onPostExecute(ArrayList<JSONObject> list) {
             mGetResultsTask = null;
-            mProgressDialog.dismiss();
+            showProgress(false);
 
             //checks if received list is empty or not
             if (list == null) {
@@ -596,7 +604,7 @@ public class ProcessOcrActivity extends Activity {
         @Override
         protected void onCancelled() {
             mUploadImagesTask = null;
-            mProgressDialog.dismiss();
+            showProgress(false);
         }
     }
 
@@ -632,6 +640,42 @@ public class ProcessOcrActivity extends Activity {
             myOcrResultsList.add(new OcrResult(extractedText, processingStarted, processingFinished, processingTime, thumbnailUrl, imageUrl, createdAt));
 
         }
-        mProgressDialog.dismiss();
+        showProgress(false);
+    }
+
+    /**
+     * Shows the progress bar
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+    private void showProgress(final boolean show) {
+        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
+        // for very easy animations. If available, use these APIs to fade-in
+        // the progress spinner.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+            mListView.setVisibility(show ? View.GONE : View.VISIBLE);
+            mListView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    mListView.setVisibility(show ? View.GONE : View.VISIBLE);
+                }
+            });
+
+            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            mProgressView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+                }
+            });
+        } else {
+            // The ViewPropertyAnimator APIs are not available, so simply show
+            // and hide the relevant UI components.
+            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            mListView.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
     }
 }
