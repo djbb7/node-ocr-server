@@ -20,7 +20,6 @@ import android.widget.Toast;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -90,18 +89,6 @@ public class ShowActivity extends AppCompatActivity {
         mSaveText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                /**This is the code how it was described in the video:https://www.youtube.com/watch?v=x3pyyQbwLko
-                 * but it is not working...
-
-                 String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                 File file = new File(path + "/" + timeStamp + ".txt");
-                 try {
-                 String [] saveText = String.valueOf(textView.getText()).split(System.getProperty("line.seperator"));
-                 save(file, saveText);
-                 } catch (Exception e) {
-                 e.printStackTrace();
-                 }
-                 */
 
                 //Creates a text file properly but the textfile is empty...need to be fixed
                 String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -111,17 +98,6 @@ public class ShowActivity extends AppCompatActivity {
                 try {
                     save(file, text);
                 } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                File root = new File(path);
-                File gpxfile = new File(root, "yourFileName.txt");
-                try {
-                    FileWriter writer = new FileWriter(gpxfile);
-                    writer.append(mText);
-                    writer.flush();
-                    writer.close();
-                } catch (IOException e) {
                     e.printStackTrace();
                 }
 

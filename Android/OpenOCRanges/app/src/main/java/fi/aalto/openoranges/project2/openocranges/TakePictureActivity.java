@@ -118,17 +118,7 @@ public class TakePictureActivity extends AppCompatActivity {
         mGallery.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                /**
-                 * Create a chooser intent to select the source to post image from.The source is the
-                 * gallery (ACTION_GET_CONTENT).<br/>
-                 * All possible sources are added to the intent chooser.
 
-                 Intent intent = new Intent();
-                 intent.setType("image/*");
-                 intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                 intent.setAction(Intent.ACTION_GET_CONTENT);
-                 startActivityForResult(Intent.createChooser(intent, "Select Picture"), 200);
-                 */
                 Intent intent;
 
                 if (Build.VERSION.SDK_INT < 19) {

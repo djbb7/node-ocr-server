@@ -4,8 +4,6 @@ package fi.aalto.openoranges.project2.openocranges;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
-import android.app.NotificationManager;
-import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -75,7 +73,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        Button mUsernameSignInButton = (Button) findViewById(R.id.email_sign_in_button);
+        Button mUsernameSignInButton = (Button) findViewById(R.id.sign_in_button);
         mUsernameSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -85,10 +83,6 @@ public class LoginActivity extends AppCompatActivity {
 
         mLoginFormView = findViewById(R.id.login_form);
         mProgressView = findViewById(R.id.login_progress);
-
-        //Deleting of notification if still displayed
-        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mNotificationManager.cancel(1);
     }
 
     @Override
@@ -192,10 +186,11 @@ public class LoginActivity extends AppCompatActivity {
         @Override
         protected Boolean doInBackground(Void... params) {
             //to make login easier, should be removed at the end of the project
+            String login_body = "{\"username\":\"" + "peterpan" + "\",\"password\":\"" + "dreamisover" + "\"}";
             //String login_body = "{\"username\":\"" + mUsername + "\",\"password\":\"" + mPassword + "\"}";
 
 
-            String login_body = "{\"username\":\"" + "peterpan" + "\",\"password\":\"" + "dreamisover" + "\"}";
+
             String login = "users/login";
             String server_url = getString(R.string.server);
             final String responseMessage;
@@ -216,7 +211,7 @@ public class LoginActivity extends AppCompatActivity {
             }
             runOnUiThread(new Runnable() {
                 public void run() {
-                    Toast.makeText(LoginActivity.this, responseMessage, Toast.LENGTH_LONG).show();
+                    Toast.makeText(LoginActivity.this, mToken, Toast.LENGTH_LONG).show();
                 }
             });
 

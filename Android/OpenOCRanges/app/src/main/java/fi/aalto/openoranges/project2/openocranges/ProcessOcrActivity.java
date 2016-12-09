@@ -2,11 +2,9 @@ package fi.aalto.openoranges.project2.openocranges;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
-import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -18,7 +16,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.system.ErrnoException;
 import android.util.Log;
@@ -64,6 +61,7 @@ public class ProcessOcrActivity extends Activity {
     public static final String lang = "eng";
     public static final String DATA_PATH = Environment.getExternalStorageDirectory().toString() + "/OpenOCRanges/";
     public static final String path = Environment.getExternalStorageDirectory().toString() + "/OpenTxtFiles";
+    public static final String path_images = Environment.getExternalStorageDirectory().toString() + "/UploadedImages";
     private ProgressDialog mProgressDialog;
 
     private String mToken;
@@ -262,8 +260,6 @@ public class ProcessOcrActivity extends Activity {
     }
 
 
-
-
     private Bitmap convertColorIntoBlackAndWhiteImage(Bitmap orginalBitmap) {
         ColorMatrix colorMatrix = new ColorMatrix();
         colorMatrix.setSaturation(0);
@@ -316,61 +312,6 @@ public class ProcessOcrActivity extends Activity {
         }
     }
 
-    /**
-     * Create a chooser intent to select the source to post image from.<br/>
-     * The source can be camera's (ACTION_IMAGE_CAPTURE) or gallery's (ACTION_GET_CONTENT).<br/>
-     * All possible sources are added to the intent chooser.
-     */
-    public Intent getPickImageChooserIntent() {
-
-        // Determine Uri of camera image to save.
-        Uri outputFileUri = getCaptureImageOutputUri();
-
-        List<Intent> allIntents = new ArrayList<>();
-        PackageManager packageManager = getPackageManager();
-
-        // collect all camera intents
-        Intent captureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
-        for (ResolveInfo res : listCam) {
-            Intent intent = new Intent(captureIntent);
-            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
-            intent.setPackage(res.activityInfo.packageName);
-            if (outputFileUri != null) {
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
-            }
-            allIntents.add(intent);
-        }
-
-        // collect all gallery intents
-        Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
-        galleryIntent.setType("image/*");
-        List<ResolveInfo> listGallery = packageManager.queryIntentActivities(galleryIntent, 0);
-        for (ResolveInfo res : listGallery) {
-            Intent intent = new Intent(galleryIntent);
-            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
-            intent.setPackage(res.activityInfo.packageName);
-            allIntents.add(intent);
-        }
-
-        // the main intent is the last in the list (fucking android) so pickup the useless one
-        Intent mainIntent = allIntents.get(allIntents.size() - 1);
-        for (Intent intent : allIntents) {
-            if (intent.getComponent().getClassName().equals("com.android.documentsui.DocumentsActivity")) {
-                mainIntent = intent;
-                break;
-            }
-        }
-        allIntents.remove(mainIntent);
-
-        // Create a chooser from the main intent
-        Intent chooserIntent = Intent.createChooser(mainIntent, "Select source");
-
-        // Add all other intents
-        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, allIntents.toArray(new Parcelable[allIntents.size()]));
-
-        return chooserIntent;
-    }
 
     /**
      * Get URI to image received from capture by camera.
@@ -385,7 +326,7 @@ public class ProcessOcrActivity extends Activity {
     }
 
     /**
-     * Get the URI of the selected image from {@link #getPickImageChooserIntent()}.<br/>
+     * Get the URI of the selected image from
      * Will return the correct URI for camera and gallery image.
      *
      * @param data the returned data of the activity result
@@ -421,20 +362,11 @@ public class ProcessOcrActivity extends Activity {
     //receives as parameters a string which represents the url of the server
     public Response post(String url, String[] list) throws IOException {
 
-        final MediaType MEDIA_TYPE_PNG = MediaType.parse("image/jpeg");
+        final MediaType MEDIA_TYPE_JPEG = MediaType.parse("image/jpeg");
 
-        /**  RequestBody req = null;
-         try {
-
-         File file = new File(uri.getPath());
-         req = new MultipartBody.Builder().setType(MultipartBody.FORM)
-         .addFormDataPart("photos[]", file.getName(), RequestBody.create(MEDIA_TYPE_PNG, file)).build();
-         } catch (Exception i) {
-         i.printStackTrace();
-         }
-         **/
 
         MultipartBody requestBody = null;
+
         try {
             MultipartBody.Builder buildernew = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM);   //Here you can add the fix number of data.
@@ -443,7 +375,7 @@ public class ProcessOcrActivity extends Activity {
                 Uri uri = Uri.parse(list[i]);
                 File f = new File(uri.getPath());
                 if (f.exists()) {
-                    buildernew.addFormDataPart("photos[]", f.getName(), RequestBody.create(MEDIA_TYPE_PNG, f));
+                    buildernew.addFormDataPart("photos[]", f.getName(), RequestBody.create(MEDIA_TYPE_JPEG, f));
                 }
             }
 
@@ -458,6 +390,30 @@ public class ProcessOcrActivity extends Activity {
                 .post(requestBody)
                 .build();
         return client.newCall(request).execute();
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is ExternalStorageProvider.
+     */
+    public static boolean isExternalStorageDocument(Uri uri) {
+        return "com.android.externalstorage.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is DownloadsProvider.
+     */
+    public static boolean isDownloadsDocument(Uri uri) {
+        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is MediaProvider.
+     */
+    public static boolean isMediaDocument(Uri uri) {
+        return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
 
     /**
@@ -630,7 +586,7 @@ public class ProcessOcrActivity extends Activity {
                 i.putExtra("token", mToken);
                 i.putExtra("text", text);
                 i.putExtra("mPictureUriList", mPictureUriList);
-               // i.putExtra("myOcrResultsList", (Serializable) myOcrResultsList);
+                // i.putExtra("myOcrResultsList", (Serializable) myOcrResultsList);
 
                 startActivity(i);
                 finish();
