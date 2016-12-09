@@ -7,7 +7,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:fitsSystemWindows="true"
-    tools:context="fi.aalto.openoranges.project2.openocranges.LocalActivity">
+    tools:context="fi.aalto.openoranges.project2.openocranges.ShowActivity">
 
     <RelativeLayout
         android:layout_width="match_parent"

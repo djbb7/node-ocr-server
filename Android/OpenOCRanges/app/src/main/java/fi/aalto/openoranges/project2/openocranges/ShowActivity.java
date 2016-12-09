@@ -13,12 +13,9 @@ import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.theartofdev.edmodo.cropper.CropImageView;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -26,9 +23,10 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
-public class LocalActivity extends AppCompatActivity {
+public class ShowActivity extends AppCompatActivity {
 
     private TextView mTextResult;
     private ImageView mImageResult;
@@ -42,17 +40,25 @@ public class LocalActivity extends AppCompatActivity {
     private Uri mPictureUri;
     private String[] mPictureUriList;
     private String mText;
+    private String mModus;
+    private ArrayList<? extends OcrResult> myOcrResultsList = new ArrayList<>();
+    private ArrayList<OcrResult> myOcrResultsList_option = new ArrayList<>();
+
     public static final String path = Environment.getExternalStorageDirectory().toString() + "/OpenTxtFiles";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_local);
+        setContentView(R.layout.activity_show);
 
         //post Token from previous activity
         mToken = getIntent().getStringExtra("token");
         mText = getIntent().getStringExtra("text");
+        mModus = getIntent().getStringExtra("mModus");
+        mPictureUriList = getIntent().getStringArrayExtra("mPictureUriList");
+        myOcrResultsList = getIntent().getParcelableArrayListExtra("myOcrResultsList");
+        myOcrResultsList_option = (ArrayList<OcrResult>) getIntent().getSerializableExtra("myOcrResultsList");
 
         //View for taken picture
         mImageResult = (ImageView) findViewById(R.id.imageViewResult);
@@ -72,7 +78,7 @@ public class LocalActivity extends AppCompatActivity {
         mBackToMain.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = new Intent(LocalActivity.this, MainActivity.class);
+                Intent i = new Intent(ShowActivity.this, MainActivity.class);
                 i.putExtra("token", mToken);
                 startActivity(i);
                 finish();
@@ -125,8 +131,6 @@ public class LocalActivity extends AppCompatActivity {
             }
         });
     }
-
-
 
 
     public static void save(File file, String[] data) {
@@ -209,7 +213,7 @@ public class LocalActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(Void result) {
             showProgress(false);
-            Toast.makeText(LocalActivity.this, "Textfile saved", Toast.LENGTH_SHORT).show();
+            Toast.makeText(ShowActivity.this, "Textfile saved", Toast.LENGTH_SHORT).show();
         }
     }
 

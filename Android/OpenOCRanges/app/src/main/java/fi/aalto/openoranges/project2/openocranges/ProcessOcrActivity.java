@@ -36,14 +36,10 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import okhttp3.MediaType;
@@ -86,6 +82,8 @@ public class ProcessOcrActivity extends Activity {
     private ArrayList<JSONObject> arrays = null;
     private List<OcrResult> myOcrResultsList = new ArrayList<>();
 
+    String text;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -108,6 +106,7 @@ public class ProcessOcrActivity extends Activity {
         mPictureView = (CropImageView) findViewById(R.id.picture_view);
         if (getIntent().getStringExtra("mOrientation").equals("1")) {
             mPictureUri = Uri.parse(getIntent().getStringExtra("mPictureUri"));
+            mPictureUriList = new String[1];
             mPictureUriList[0] = mPictureUri.toString();
             mPictureView.setImageUriAsync(mPictureUri);
         } else if (mPictureUriList != null && mPictureUriList.length == 1) {
@@ -183,7 +182,7 @@ public class ProcessOcrActivity extends Activity {
                     if (mProgressDialog == null) {
                         mProgressDialog = ProgressDialog.show(getApplicationContext(), "Processing",
                                 "Please wait...", true);
-                        // mResult.setVisibility(V.ViewISIBLE);
+
                     } else {
                         mProgressDialog.show();
                     }
@@ -234,7 +233,15 @@ public class ProcessOcrActivity extends Activity {
                         // TODO Auto-generated method stub
                         if (result != null && !result.equals("")) {
                             String s = result.trim();
-                            textView.setText(result);
+
+                            Intent i = new Intent(ProcessOcrActivity.this, ShowActivity.class);
+                            i.putExtra("mModus", mModus);
+                            i.putExtra("token", mToken);
+                            i.putExtra("text", result);
+                            i.putExtra("mPictureUriList", mPictureUriList);
+
+                            startActivity(i);
+                            finish();
                         }
 
                         mProgressDialog.dismiss();
@@ -252,71 +259,9 @@ public class ProcessOcrActivity extends Activity {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        /**This is the code how it was described in the video:https://www.youtube.com/watch?v=x3pyyQbwLko
-         * but it is not working...
-
-         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-         File file = new File(path + "/" + timeStamp + ".txt");
-         try {
-         String [] saveText = String.valueOf(textView.getText()).split(System.getProperty("line.seperator"));
-         save(file, saveText);
-         } catch (Exception e) {
-         e.printStackTrace();
-         }
-         */
-
-        //Creates a text file properly but the textfile is empty...need to be fixed
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        File file = new File(path + "/" + timeStamp + ".txt");
-        String[] text = new String[1];
-        text[0] = String.valueOf(textView.getText());
-        try {
-            save(file, text);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        File root = new File(path);
-        File gpxfile = new File(root, "yourFileName.txt");
-        try {
-            FileWriter writer = new FileWriter(gpxfile);
-            writer.append(textView.getText().toString());
-            writer.flush();
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
     }
 
 
-    public static void save(File file, String[] data) {
-        FileOutputStream fos = null;
-        try {
-            fos = new FileOutputStream(file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        try {
-            try {
-                for (int i = 0; i < data.length; i++) {
-                    fos.write(data[i].getBytes());
-                    if (i < data.length - 1) {
-                        fos.write("\n".getBytes());
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } finally {
-            try {
-                fos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
 
     private Bitmap convertColorIntoBlackAndWhiteImage(Bitmap orginalBitmap) {
@@ -492,8 +437,7 @@ public class ProcessOcrActivity extends Activity {
         MultipartBody requestBody = null;
         try {
             MultipartBody.Builder buildernew = new MultipartBody.Builder()
-                    .setType(MultipartBody.FORM)
-                    .addFormDataPart("photos[]", "2");   //Here you can add the fix number of data.
+                    .setType(MultipartBody.FORM);   //Here you can add the fix number of data.
 
             for (int i = 0; i < list.length; i++) {
                 Uri uri = Uri.parse(list[i]);
@@ -602,33 +546,13 @@ public class ProcessOcrActivity extends Activity {
                 if (code == 200) {
                     try {
                         JSONObject myjson = new JSONObject(response.body().string().toString());
-
-                        JSONArray the_json_array = myjson.getJSONArray("transactions");
+                        text = myjson.getString("extractedText");
+                        JSONArray the_json_array = myjson.getJSONArray("files");
                         int size = the_json_array.length();
                         arrays = new ArrayList<JSONObject>();
                         for (int i = 0; i < size; i++) {
-                            JSONObject another_json_object = the_json_array.getJSONObject(i);
-
-                            JSONArray ocrResultsArray = another_json_object.getJSONArray("files");
-
-
-                            JSONObject json_results = ocrResultsArray.getJSONObject(0);
-
-                            //merging the two JsonObjects
-                            JSONObject mergedObj = new JSONObject();
-
-                            Iterator i1 = another_json_object.keys();
-                            Iterator i2 = json_results.keys();
-                            String tmp_key;
-                            while (i1.hasNext()) {
-                                tmp_key = (String) i1.next();
-                                mergedObj.put(tmp_key, another_json_object.get(tmp_key));
-                            }
-                            while (i2.hasNext()) {
-                                tmp_key = (String) i2.next();
-                                mergedObj.put(tmp_key, json_results.get(tmp_key));
-                            }
-                            arrays.add(mergedObj);
+                            JSONObject json_results = the_json_array.getJSONObject(i);
+                            arrays.add(json_results);
                         }
                         JSONObject[] json = new JSONObject[arrays.size()];
                         arrays.toArray(json);
@@ -641,37 +565,17 @@ public class ProcessOcrActivity extends Activity {
                     //waiting for the server to process images
                     while (counter < 20) {
                         Thread.sleep(4000);
-                       response = ProcessOcrActivity.this.get(server_url + href);
+                        response = ProcessOcrActivity.this.get(server_url + href);
                         if (response.code() == 200) {
                             try {
                                 JSONObject myjson = new JSONObject(response.body().string().toString());
-
-                                JSONArray the_json_array = myjson.getJSONArray("transactions");
+                                text = myjson.getString("extractedText");
+                                JSONArray the_json_array = myjson.getJSONArray("files");
                                 int size = the_json_array.length();
                                 arrays = new ArrayList<JSONObject>();
                                 for (int i = 0; i < size; i++) {
-                                    JSONObject another_json_object = the_json_array.getJSONObject(i);
-
-                                    JSONArray ocrResultsArray = another_json_object.getJSONArray("files");
-
-
-                                    JSONObject json_results = ocrResultsArray.getJSONObject(0);
-
-                                    //merging the two JsonObjects
-                                    JSONObject mergedObj = new JSONObject();
-
-                                    Iterator i1 = another_json_object.keys();
-                                    Iterator i2 = json_results.keys();
-                                    String tmp_key;
-                                    while (i1.hasNext()) {
-                                        tmp_key = (String) i1.next();
-                                        mergedObj.put(tmp_key, another_json_object.get(tmp_key));
-                                    }
-                                    while (i2.hasNext()) {
-                                        tmp_key = (String) i2.next();
-                                        mergedObj.put(tmp_key, json_results.get(tmp_key));
-                                    }
-                                    arrays.add(mergedObj);
+                                    JSONObject json_results = the_json_array.getJSONObject(i);
+                                    arrays.add(json_results);
                                 }
                                 JSONObject[] json = new JSONObject[arrays.size()];
                                 arrays.toArray(json);
@@ -720,6 +624,16 @@ public class ProcessOcrActivity extends Activity {
                 Toast.makeText(ProcessOcrActivity.this, "OCR SUCCESS", Toast.LENGTH_LONG).show();
                 arrays = list;
                 populatOcrList();
+
+                Intent i = new Intent(ProcessOcrActivity.this, ShowActivity.class);
+                i.putExtra("mModus", mModus);
+                i.putExtra("token", mToken);
+                i.putExtra("text", text);
+                i.putExtra("mPictureUriList", mPictureUriList);
+               // i.putExtra("myOcrResultsList", (Serializable) myOcrResultsList);
+
+                startActivity(i);
+                finish();
             }
         }
 
@@ -729,6 +643,7 @@ public class ProcessOcrActivity extends Activity {
             mProgressDialog.dismiss();
         }
     }
+
     //fill arraylist with the results of the images, received from the server
     private void populatOcrList() {
         myOcrResultsList = new ArrayList<>();

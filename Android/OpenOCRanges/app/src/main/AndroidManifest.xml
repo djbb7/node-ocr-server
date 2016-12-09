@@ -49,10 +49,9 @@
             android:theme="@style/AppTheme">
         </activity>
         <activity
-            android:name=".LocalActivity"
+            android:name=".ShowActivity"
             android:label="Local"
-            android:theme="@style/AppTheme"
-            android:screenOrientation="landscape">
+            android:theme="@style/AppTheme">
         </activity>
         <activity
             android:name=".BenchmarkActivity"
