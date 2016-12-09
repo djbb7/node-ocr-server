@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton mRefreshButton;
     private Button mLogoutButton;
     private TimeoutOperation mSleeper = null;
+    private String mSleeperAction = null;
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     OkHttpClient client = new OkHttpClient();
@@ -101,10 +102,10 @@ public class MainActivity extends AppCompatActivity {
         mReadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                mSleeperAction = "read";
+                mSleeper = new TimeoutOperation();
+                mSleeper.execute((Void) null);
                 showProgress(true);
-                Intent i = new Intent(MainActivity.this, TakePictureActivity.class);
-                i.putExtra("token", mToken);
-                startActivity(i);
             }
         });
 
@@ -121,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
         mRefreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                mSleeperAction = "refresh";
                 mSleeper = new TimeoutOperation();
                 mSleeper.execute((Void) null);
                 showProgress(true);
@@ -481,6 +483,11 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void result) {
+            if(mSleeperAction.equals("read")){
+                Intent i = new Intent(MainActivity.this, TakePictureActivity.class);
+                i.putExtra("token", mToken);
+                startActivity(i);
+            }
         }
     }
 

@@ -19,6 +19,26 @@ public class BenchmarkActivity extends AppCompatActivity {
     private TextView mTextResult;
     private Button mBackToMain;
     private TimeoutOperation mSleeper = null;
+    private int mNumberImages;
+    private int mTimeLocal;
+    private int mTimeRemote;
+    private int mTimeFastLocal;
+    private int mTimeSlowLocal;
+    private int mPictureFastLocal;
+    private int mPictureSlowLocal;
+    private int mPictureFastRemote;
+    private int mPictureSlowRemote;
+    private int mTimeFastRemote;
+    private int mTimeSlowRemote;
+    private int mMeanTimeLocal;
+    private int mMeanTimeRemote;
+    private int mBytesMin;
+    private int mBytesMax;
+    private int mPictureMax;
+    private int mPictureMin;
+    private int mDataExchange;
+    private int mMeanDataExchange;
+
 
     private View mProgressView;
     private View mListView;
@@ -35,7 +55,17 @@ public class BenchmarkActivity extends AppCompatActivity {
 
         mTextResult = (TextView) findViewById(R.id.Benchmarking);
         //Setting benchmark text with variables
-        mTextResult.setText("Result");
+        mTextResult.setText("\nNumber of processed images:" + mNumberImages + "\n" +
+                "\n" +
+                "Local\n" +
+                "Processing time: " + mTimeLocal +  " (" + mMeanTimeLocal + ") ms\n" +
+                "Minimum: " + mTimeFastLocal + " ms (" + mPictureFastLocal + "); Maximum: " + mTimeSlowLocal + " (" + mPictureSlowLocal + ")\n" +
+                "\n" +
+                "Remote\n" +
+                "Processing time: " + mTimeRemote +  "(" + mMeanTimeRemote + ") ms\n" +
+                "Minimum: " + mTimeFastRemote + " ms (" + mPictureFastRemote + "); Maximum:" + mTimeSlowRemote + " (" + mPictureSlowRemote + ")\n" +
+                "Exchanged data: " + mDataExchange + "(" + mMeanDataExchange + ") bytes\n" +
+                "Minimum:" + mBytesMin +  " bytes (" + mPictureMin + "); Maximum: " + mBytesMax + " bytes (" + mPictureMax + ")");
 
         mBackToMain = (Button) findViewById(R.id.backToMain);
         mBackToMain.setOnClickListener(new View.OnClickListener() {
