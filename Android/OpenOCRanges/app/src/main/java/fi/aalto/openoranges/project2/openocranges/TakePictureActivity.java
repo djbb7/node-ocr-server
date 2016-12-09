@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -118,32 +119,25 @@ public class TakePictureActivity extends AppCompatActivity {
         mGallery.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                /**
-                 * Create a chooser intent to select the source to post image from.The source is the
-                 * gallery (ACTION_GET_CONTENT).<br/>
-                 * All possible sources are added to the intent chooser.
 
-                 Intent intent = new Intent();
-                 intent.setType("image/*");
-                 intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                 intent.setAction(Intent.ACTION_GET_CONTENT);
-                 startActivityForResult(Intent.createChooser(intent, "Select Picture"), 200);
-                 */
                 Intent intent;
+                intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                startActivityForResult(intent, 200);
 
-                if (Build.VERSION.SDK_INT < 19) {
+                /*if (Build.VERSION.SDK_INT < 19) {
                     intent = new Intent();
                     intent.setAction(Intent.ACTION_GET_CONTENT);
                     intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                    intent.setType("image/*");
+                    intent.setType("image*//*");
                     startActivityForResult(intent, 200);
                 } else {
                     intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
                     intent.addCategory(Intent.CATEGORY_OPENABLE);
                     intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                    intent.setType("image/*");
+                    intent.setType("image*//*");
                     startActivityForResult(intent, 200);
-                }
+                }*/
             }
         });
         mGallery.bringToFront();
@@ -155,6 +149,7 @@ public class TakePictureActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(TakePictureActivity.this, MainActivity.class);
+                i.putExtra("token", mToken);
                 startActivity(i);
                 finish();
             }
@@ -227,7 +222,7 @@ public class TakePictureActivity extends AppCompatActivity {
         return false;
     }
 
-    @Override
+    /*@Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK) {
             getPickImageResultUri(data);
@@ -242,7 +237,38 @@ public class TakePictureActivity extends AppCompatActivity {
             finish();
 
         }
+    }*/
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        try {
+            // When an Image is picked
+            if (requestCode == 200 && resultCode == RESULT_OK && null != data) {
+                // Get the Image from data
+                getPickImageResultUri(data);
+
+                Intent i = new Intent(TakePictureActivity.this, ProcessOcrActivity.class);
+                i.putExtra("mModus", mOcrOption);
+                i.putExtra("mOrientation", "0");
+                i.putExtra("token", mToken);
+                i.putExtra("mPictureUriList", mImageUriList);
+
+                startActivity(i);
+                finish();
+
+            } else {
+                Toast.makeText(this, "You haven't picked Image",
+                        Toast.LENGTH_LONG).show();
+            }
+        } catch (Exception e) {
+            Toast.makeText(this, "Something went wrong", Toast.LENGTH_LONG)
+                    .show();
+        }
+
     }
+
+
 
     @Override
     protected void onStart() {

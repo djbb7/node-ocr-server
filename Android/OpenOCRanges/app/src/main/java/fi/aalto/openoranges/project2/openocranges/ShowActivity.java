@@ -5,12 +5,14 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.media.Image;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -18,23 +20,26 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.theartofdev.edmodo.cropper.CropImageView;
-
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
-public class LocalActivity extends AppCompatActivity {
+public class ShowActivity extends AppCompatActivity {
 
     private TextView mTextResult;
+    private TextView mCreatedTime;
+    private String mTimestamp;
     private ImageView mImageResult;
     private Button mBackToMain;
+    private Button mRetake;
+    private ImageButton mShowImage;
     private Button mSaveText;
     private TimeoutOperation mSleeper = null;
+    private String mSleeperAction = null;
 
     private View mProgressView;
     private View mListView;
@@ -42,60 +47,120 @@ public class LocalActivity extends AppCompatActivity {
     private Uri mPictureUri;
     private String[] mPictureUriList;
     private String mText;
+    private String mImageUrl;
+    private int mClickCounter = 0;
+    private String mModus;
+    private ArrayList<? extends OcrResult> myOcrResultsList = new ArrayList<>();
+    private ArrayList<OcrResult> myOcrResultsList_option = new ArrayList<>();
+
     public static final String path = Environment.getExternalStorageDirectory().toString() + "/OpenTxtFiles";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_local);
+        setContentView(R.layout.activity_show);
 
         //post Token from previous activity
         mToken = getIntent().getStringExtra("token");
         mText = getIntent().getStringExtra("text");
+        mTimestamp = getIntent().getStringExtra("timestamp");
+        mModus = getIntent().getStringExtra("mModus");
+        mPictureUriList = getIntent().getStringArrayExtra("mPictureUriList");
+        mImageUrl = getIntent().getStringExtra("imageUrl");
+        myOcrResultsList = getIntent().getParcelableArrayListExtra("myOcrResultsList");
+        myOcrResultsList_option = (ArrayList<OcrResult>) getIntent().getSerializableExtra("myOcrResultsList");
 
-        //View for taken picture
-        mImageResult = (ImageView) findViewById(R.id.imageViewResult);
-        if (mPictureUriList != null && mPictureUriList.length == 1) {
-            mPictureUri = Uri.parse(mPictureUriList[0]);
-            mImageResult.setImageURI(mPictureUri);
-        } else {
-            mPictureUri = Uri.parse(mPictureUriList[1]);
-            mImageResult.setImageURI(mPictureUri);
-        }
+        //Finding ImageUri from server
+        final Uri mImageUri = Uri.parse(getString(R.string.serverWithoutSlash) + "" + mImageUrl);
 
+        //Setting result for text
         mTextResult = (TextView) findViewById(R.id.textViewResult);
-        //Setting benchmark text with variables
+        if (mText.equals("")){
+            mTextResult.setText("No text recognized!");
+            mTextResult.setGravity(View.TEXT_ALIGNMENT_CENTER);
+        }
+        else{
         mTextResult.setText(mText);
+        }
+        mTextResult.setMovementMethod(new ScrollingMovementMethod());
+
+        //Preparing view for source image
+        mImageResult = (ImageView) findViewById(R.id.imageViewResult);
+        mImageResult.setVisibility(View.INVISIBLE);
+
+        //Displaying timestamp
+        mCreatedTime = (TextView) findViewById((R.id.createdTime));
+        mCreatedTime.setText("Created at: " + mTimestamp);
 
         mBackToMain = (Button) findViewById(R.id.backToMain);
         mBackToMain.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = new Intent(LocalActivity.this, MainActivity.class);
+                Intent i = new Intent(ShowActivity.this, MainActivity.class);
                 i.putExtra("token", mToken);
                 startActivity(i);
                 finish();
             }
         });
 
+        //Button to retake picture
+        mRetake = (Button) findViewById(R.id.retake);
+        mRetake.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mSleeperAction = "read";
+                mSleeper = new TimeoutOperation();
+                mSleeper.execute((Void) null);
+                showProgress(true);
+            }
+        });
+
+        //Button to showing image
+        mShowImage = (ImageButton) findViewById(R.id.showImage);
+        mShowImage.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mClickCounter == 0){
+                //View for taken picture
+                mTextResult.setVisibility(View.INVISIBLE);
+                mImageResult.setVisibility(View.VISIBLE);
+
+                    if (mPictureUriList != null){
+                if (mPictureUriList != null && mPictureUriList.length == 1) {
+                    mPictureUri = Uri.parse(mPictureUriList[0]);
+                    mImageResult.setImageURI(mPictureUri);
+                }
+                else {
+                    mPictureUri = Uri.parse(mPictureUriList[1]);
+                    mImageResult.setImageURI(mPictureUri);
+                }}
+                        else if( mImageUri == null){
+                        mImageResult.setImageResource(R.drawable.no_image);
+                    }
+
+                        else{
+                            mImageResult.setImageURI(mImageUri);
+                        }
+                mClickCounter = 1;
+                    mShowImage.setImageResource(R.drawable.show_text);
+                }
+                else{
+                    mTextResult.setVisibility(View.VISIBLE);
+                    mImageResult.setVisibility(View.INVISIBLE);
+                    mShowImage.setImageResource(R.drawable.icon_ocranges_white);
+                    mClickCounter = 0;}
+            }
+        });
 
         mSaveText = (Button) findViewById(R.id.saveTxt);
         mSaveText.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                /**This is the code how it was described in the video:https://www.youtube.com/watch?v=x3pyyQbwLko
-                 * but it is not working...
-
-                 String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-                 File file = new File(path + "/" + timeStamp + ".txt");
-                 try {
-                 String [] saveText = String.valueOf(textView.getText()).split(System.getProperty("line.seperator"));
-                 save(file, saveText);
-                 } catch (Exception e) {
-                 e.printStackTrace();
-                 }
-                 */
+                mSleeperAction = "save";
+                mSleeper = new TimeoutOperation();
+                mSleeper.execute((Void) null);
+                showProgress(true);
 
                 //Creates a text file properly but the textfile is empty...need to be fixed
                 String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -107,26 +172,12 @@ public class LocalActivity extends AppCompatActivity {
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-
-                File root = new File(path);
-                File gpxfile = new File(root, "yourFileName.txt");
-                try {
-                    FileWriter writer = new FileWriter(gpxfile);
-                    writer.append(mText);
-                    writer.flush();
-                    writer.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-
-                mListView = findViewById(R.id.ResultView);
-                mProgressView = findViewById(R.id.save_progress);
             }
         });
+
+        mListView = findViewById(R.id.mainView);
+        mProgressView = findViewById(R.id.save_progress);
     }
-
-
 
 
     public static void save(File file, String[] data) {
@@ -208,8 +259,15 @@ public class LocalActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void result) {
-            showProgress(false);
-            Toast.makeText(LocalActivity.this, "Textfile saved", Toast.LENGTH_SHORT).show();
+            if(mSleeperAction.equals("read")){
+                Intent i = new Intent(ShowActivity.this, TakePictureActivity.class);
+                i.putExtra("token", mToken);
+                startActivity(i);
+            }
+            else{
+                showProgress(false);
+                Toast.makeText(ShowActivity.this, "Textfile saved", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 

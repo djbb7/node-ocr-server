@@ -30,7 +30,7 @@
                     android:layout_height="match_parent"
                     android:layout_marginLeft="@dimen/activity_horizontal_margin"
                     android:background="#00000000"
-                    android:src = "@drawable/refresh" />
+                    android:src = "@drawable/refresh_white" />
 
                 <TextView
                     android:text="@string/app_name"

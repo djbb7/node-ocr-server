@@ -1,12 +1,14 @@
 package fi.aalto.openoranges.project2.openocranges;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.content.pm.ResolveInfo;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -18,7 +20,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.system.ErrnoException;
 import android.util.Log;
@@ -36,14 +37,10 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 
 import okhttp3.MediaType;
@@ -68,7 +65,7 @@ public class ProcessOcrActivity extends Activity {
     public static final String lang = "eng";
     public static final String DATA_PATH = Environment.getExternalStorageDirectory().toString() + "/OpenOCRanges/";
     public static final String path = Environment.getExternalStorageDirectory().toString() + "/OpenTxtFiles";
-    private ProgressDialog mProgressDialog;
+    public static final String path_images = Environment.getExternalStorageDirectory().toString() + "/UploadedImages";
 
     private String mToken;
     private String mModus;
@@ -79,12 +76,17 @@ public class ProcessOcrActivity extends Activity {
     private String mTransactionID;
     private String href;
 
+    private View mProgressView;
+    private View mListView;
+
     //For the communication with the server
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     OkHttpClient client = new OkHttpClient();
 
     private ArrayList<JSONObject> arrays = null;
     private List<OcrResult> myOcrResultsList = new ArrayList<>();
+
+    String text;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,6 +110,7 @@ public class ProcessOcrActivity extends Activity {
         mPictureView = (CropImageView) findViewById(R.id.picture_view);
         if (getIntent().getStringExtra("mOrientation").equals("1")) {
             mPictureUri = Uri.parse(getIntent().getStringExtra("mPictureUri"));
+            mPictureUriList = new String[1];
             mPictureUriList[0] = mPictureUri.toString();
             mPictureView.setImageUriAsync(mPictureUri);
         } else if (mPictureUriList != null && mPictureUriList.length == 1) {
@@ -159,8 +162,24 @@ public class ProcessOcrActivity extends Activity {
             }
         }
 
-        mTessOCR = new TessOCR();
+        //Creates Directory for saving the text files from OCR
+        File dir = new File(path);
+        dir.mkdirs();
 
+        //View for taken picture
+        mPictureView = (CropImageView) findViewById(R.id.picture_view);
+        if (getIntent().getStringExtra("mOrientation").equals("1")) {
+            mPictureUri = Uri.parse(getIntent().getStringExtra("mPictureUri"));
+            mPictureUriList = new String [1];
+            mPictureUriList[0] = mPictureUri.toString();
+            mPictureView.setImageUriAsync(mPictureUri);
+        } else if (mPictureUriList != null && mPictureUriList.length == 1) {
+            mPictureUri = Uri.parse(mPictureUriList[0]);
+            mPictureView.setImageUriAsync(mPictureUri);
+        } else {
+            mPictureUri = Uri.parse(mPictureUriList[0]);
+            mPictureView.setImageUriAsync(mPictureUri);
+        }
 
         //Button to retake picture
         mRetake = (Button) findViewById(R.id.Retake);
@@ -180,13 +199,8 @@ public class ProcessOcrActivity extends Activity {
             public void onClick(View view) {
                 //if remote modus is chosen do ocr processing on server
                 if (mModus.equals("Remote")) {
-                    if (mProgressDialog == null) {
-                        mProgressDialog = ProgressDialog.show(ProcessOcrActivity.this, "Processing",
-                                "Please wait...", true);
-                        // mResult.setVisibility(V.ViewISIBLE);
-                    } else {
-                        mProgressDialog.show();
-                    }
+                    showProgress(true);
+
                     mUploadImagesTask = new uploadImagesTask();
                     mUploadImagesTask.execute((Void) null);
                 } else {
@@ -205,22 +219,15 @@ public class ProcessOcrActivity extends Activity {
             }
         });
 
-        //Creates Directory for saving the text files from OCR
-        File dir = new File(path);
-        dir.mkdirs();
+        mTessOCR = new TessOCR();
+
+        mProgressView = (View) findViewById(R.id.load_progress);
+        mListView = (View) findViewById(R.id.resultView);
     }
 
 
     public void doOCR(final Bitmap bitmap) {
-        if (mProgressDialog == null) {
-            mProgressDialog = ProgressDialog.show(this, "Processing",
-                    "Please wait...", true);
-            // mResult.setVisibility(V.ViewISIBLE);
-
-
-        } else {
-            mProgressDialog.show();
-        }
+        showProgress(true);
 
         Thread t = new Thread(new Runnable() {
             public void run() {
@@ -234,10 +241,18 @@ public class ProcessOcrActivity extends Activity {
                         // TODO Auto-generated method stub
                         if (result != null && !result.equals("")) {
                             String s = result.trim();
-                            textView.setText(result);
+
+                            Intent i = new Intent(ProcessOcrActivity.this, ShowActivity.class);
+                            i.putExtra("mModus", mModus);
+                            i.putExtra("token", mToken);
+                            i.putExtra("text", result);
+                            i.putExtra("mPictureUriList", mPictureUriList);
+
+                            startActivity(i);
+                            finish();
                         }
 
-                        mProgressDialog.dismiss();
+                        showProgress(false);
                     }
 
                 });
@@ -251,70 +266,6 @@ public class ProcessOcrActivity extends Activity {
             t.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
-        }
-
-        /**This is the code how it was described in the video:https://www.youtube.com/watch?v=x3pyyQbwLko
-         * but it is not working...
-
-         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-         File file = new File(path + "/" + timeStamp + ".txt");
-         try {
-         String [] saveText = String.valueOf(textView.getText()).split(System.getProperty("line.seperator"));
-         save(file, saveText);
-         } catch (Exception e) {
-         e.printStackTrace();
-         }
-         */
-
-        //Creates a text file properly but the textfile is empty...need to be fixed
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        File file = new File(path + "/" + timeStamp + ".txt");
-        String[] text = new String[1];
-        text[0] = String.valueOf(textView.getText());
-        try {
-            save(file, text);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        File root = new File(path);
-        File gpxfile = new File(root, "yourFileName.txt");
-        try {
-            FileWriter writer = new FileWriter(gpxfile);
-            writer.append(textView.getText().toString());
-            writer.flush();
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
-
-
-    public static void save(File file, String[] data) {
-        FileOutputStream fos = null;
-        try {
-            fos = new FileOutputStream(file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
-        try {
-            try {
-                for (int i = 0; i < data.length; i++) {
-                    fos.write(data[i].getBytes());
-                    if (i < data.length - 1) {
-                        fos.write("\n".getBytes());
-                    }
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } finally {
-            try {
-                fos.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
     }
 
@@ -371,61 +322,6 @@ public class ProcessOcrActivity extends Activity {
         }
     }
 
-    /**
-     * Create a chooser intent to select the source to post image from.<br/>
-     * The source can be camera's (ACTION_IMAGE_CAPTURE) or gallery's (ACTION_GET_CONTENT).<br/>
-     * All possible sources are added to the intent chooser.
-     */
-    public Intent getPickImageChooserIntent() {
-
-        // Determine Uri of camera image to save.
-        Uri outputFileUri = getCaptureImageOutputUri();
-
-        List<Intent> allIntents = new ArrayList<>();
-        PackageManager packageManager = getPackageManager();
-
-        // collect all camera intents
-        Intent captureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        List<ResolveInfo> listCam = packageManager.queryIntentActivities(captureIntent, 0);
-        for (ResolveInfo res : listCam) {
-            Intent intent = new Intent(captureIntent);
-            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
-            intent.setPackage(res.activityInfo.packageName);
-            if (outputFileUri != null) {
-                intent.putExtra(MediaStore.EXTRA_OUTPUT, outputFileUri);
-            }
-            allIntents.add(intent);
-        }
-
-        // collect all gallery intents
-        Intent galleryIntent = new Intent(Intent.ACTION_GET_CONTENT);
-        galleryIntent.setType("image/*");
-        List<ResolveInfo> listGallery = packageManager.queryIntentActivities(galleryIntent, 0);
-        for (ResolveInfo res : listGallery) {
-            Intent intent = new Intent(galleryIntent);
-            intent.setComponent(new ComponentName(res.activityInfo.packageName, res.activityInfo.name));
-            intent.setPackage(res.activityInfo.packageName);
-            allIntents.add(intent);
-        }
-
-        // the main intent is the last in the list (fucking android) so pickup the useless one
-        Intent mainIntent = allIntents.get(allIntents.size() - 1);
-        for (Intent intent : allIntents) {
-            if (intent.getComponent().getClassName().equals("com.android.documentsui.DocumentsActivity")) {
-                mainIntent = intent;
-                break;
-            }
-        }
-        allIntents.remove(mainIntent);
-
-        // Create a chooser from the main intent
-        Intent chooserIntent = Intent.createChooser(mainIntent, "Select source");
-
-        // Add all other intents
-        chooserIntent.putExtra(Intent.EXTRA_INITIAL_INTENTS, allIntents.toArray(new Parcelable[allIntents.size()]));
-
-        return chooserIntent;
-    }
 
     /**
      * Get URI to image received from capture by camera.
@@ -440,7 +336,7 @@ public class ProcessOcrActivity extends Activity {
     }
 
     /**
-     * Get the URI of the selected image from {@link #getPickImageChooserIntent()}.<br/>
+     * Get the URI of the selected image from
      * Will return the correct URI for camera and gallery image.
      *
      * @param data the returned data of the activity result
@@ -476,30 +372,20 @@ public class ProcessOcrActivity extends Activity {
     //receives as parameters a string which represents the url of the server
     public Response post(String url, String[] list) throws IOException {
 
-        final MediaType MEDIA_TYPE_PNG = MediaType.parse("image/jpeg");
+        final MediaType MEDIA_TYPE_JPEG = MediaType.parse("image/jpeg");
 
-        /**  RequestBody req = null;
-         try {
-
-         File file = new File(uri.getPath());
-         req = new MultipartBody.Builder().setType(MultipartBody.FORM)
-         .addFormDataPart("photos[]", file.getName(), RequestBody.create(MEDIA_TYPE_PNG, file)).build();
-         } catch (Exception i) {
-         i.printStackTrace();
-         }
-         **/
 
         MultipartBody requestBody = null;
+
         try {
             MultipartBody.Builder buildernew = new MultipartBody.Builder()
-                    .setType(MultipartBody.FORM)
-                    .addFormDataPart("photos[]", "2");   //Here you can add the fix number of data.
+                    .setType(MultipartBody.FORM);   //Here you can add the fix number of data.
 
             for (int i = 0; i < list.length; i++) {
                 Uri uri = Uri.parse(list[i]);
                 File f = new File(uri.getPath());
                 if (f.exists()) {
-                    buildernew.addFormDataPart("photos[]", f.getName(), RequestBody.create(MEDIA_TYPE_PNG, f));
+                    buildernew.addFormDataPart("photos[]", f.getName(), RequestBody.create(MEDIA_TYPE_JPEG, f));
                 }
             }
 
@@ -514,6 +400,30 @@ public class ProcessOcrActivity extends Activity {
                 .post(requestBody)
                 .build();
         return client.newCall(request).execute();
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is ExternalStorageProvider.
+     */
+    public static boolean isExternalStorageDocument(Uri uri) {
+        return "com.android.externalstorage.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is DownloadsProvider.
+     */
+    public static boolean isDownloadsDocument(Uri uri) {
+        return "com.android.providers.downloads.documents".equals(uri.getAuthority());
+    }
+
+    /**
+     * @param uri The Uri to check.
+     * @return Whether the Uri authority is MediaProvider.
+     */
+    public static boolean isMediaDocument(Uri uri) {
+        return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
 
     /**
@@ -554,7 +464,7 @@ public class ProcessOcrActivity extends Activity {
 
         protected void onPostExecute(Boolean success) {
             mUploadImagesTask = null;
-            mProgressDialog.dismiss();
+            showProgress(false);
 
             if (success) {
 
@@ -570,7 +480,7 @@ public class ProcessOcrActivity extends Activity {
         @Override
         protected void onCancelled() {
             mUploadImagesTask = null;
-            mProgressDialog.dismiss();
+            showProgress(false);
         }
     }
 
@@ -602,33 +512,13 @@ public class ProcessOcrActivity extends Activity {
                 if (code == 200) {
                     try {
                         JSONObject myjson = new JSONObject(response.body().string().toString());
-
-                        JSONArray the_json_array = myjson.getJSONArray("transactions");
+                        text = myjson.getString("extractedText");
+                        JSONArray the_json_array = myjson.getJSONArray("files");
                         int size = the_json_array.length();
                         arrays = new ArrayList<JSONObject>();
                         for (int i = 0; i < size; i++) {
-                            JSONObject another_json_object = the_json_array.getJSONObject(i);
-
-                            JSONArray ocrResultsArray = another_json_object.getJSONArray("files");
-
-
-                            JSONObject json_results = ocrResultsArray.getJSONObject(0);
-
-                            //merging the two JsonObjects
-                            JSONObject mergedObj = new JSONObject();
-
-                            Iterator i1 = another_json_object.keys();
-                            Iterator i2 = json_results.keys();
-                            String tmp_key;
-                            while (i1.hasNext()) {
-                                tmp_key = (String) i1.next();
-                                mergedObj.put(tmp_key, another_json_object.get(tmp_key));
-                            }
-                            while (i2.hasNext()) {
-                                tmp_key = (String) i2.next();
-                                mergedObj.put(tmp_key, json_results.get(tmp_key));
-                            }
-                            arrays.add(mergedObj);
+                            JSONObject json_results = the_json_array.getJSONObject(i);
+                            arrays.add(json_results);
                         }
                         JSONObject[] json = new JSONObject[arrays.size()];
                         arrays.toArray(json);
@@ -641,37 +531,17 @@ public class ProcessOcrActivity extends Activity {
                     //waiting for the server to process images
                     while (counter < 20) {
                         Thread.sleep(4000);
-                       response = ProcessOcrActivity.this.get(server_url + href);
+                        response = ProcessOcrActivity.this.get(server_url + href);
                         if (response.code() == 200) {
                             try {
                                 JSONObject myjson = new JSONObject(response.body().string().toString());
-
-                                JSONArray the_json_array = myjson.getJSONArray("transactions");
+                                text = myjson.getString("extractedText");
+                                JSONArray the_json_array = myjson.getJSONArray("files");
                                 int size = the_json_array.length();
                                 arrays = new ArrayList<JSONObject>();
                                 for (int i = 0; i < size; i++) {
-                                    JSONObject another_json_object = the_json_array.getJSONObject(i);
-
-                                    JSONArray ocrResultsArray = another_json_object.getJSONArray("files");
-
-
-                                    JSONObject json_results = ocrResultsArray.getJSONObject(0);
-
-                                    //merging the two JsonObjects
-                                    JSONObject mergedObj = new JSONObject();
-
-                                    Iterator i1 = another_json_object.keys();
-                                    Iterator i2 = json_results.keys();
-                                    String tmp_key;
-                                    while (i1.hasNext()) {
-                                        tmp_key = (String) i1.next();
-                                        mergedObj.put(tmp_key, another_json_object.get(tmp_key));
-                                    }
-                                    while (i2.hasNext()) {
-                                        tmp_key = (String) i2.next();
-                                        mergedObj.put(tmp_key, json_results.get(tmp_key));
-                                    }
-                                    arrays.add(mergedObj);
+                                    JSONObject json_results = the_json_array.getJSONObject(i);
+                                    arrays.add(json_results);
                                 }
                                 JSONObject[] json = new JSONObject[arrays.size()];
                                 arrays.toArray(json);
@@ -711,7 +581,7 @@ public class ProcessOcrActivity extends Activity {
 
         protected void onPostExecute(ArrayList<JSONObject> list) {
             mGetResultsTask = null;
-            mProgressDialog.dismiss();
+            showProgress(false);
 
             //checks if received list is empty or not
             if (list == null) {
@@ -720,15 +590,26 @@ public class ProcessOcrActivity extends Activity {
                 Toast.makeText(ProcessOcrActivity.this, "OCR SUCCESS", Toast.LENGTH_LONG).show();
                 arrays = list;
                 populatOcrList();
+
+                Intent i = new Intent(ProcessOcrActivity.this, ShowActivity.class);
+                i.putExtra("mModus", mModus);
+                i.putExtra("token", mToken);
+                i.putExtra("text", text);
+                i.putExtra("mPictureUriList", mPictureUriList);
+                // i.putExtra("myOcrResultsList", (Serializable) myOcrResultsList);
+
+                startActivity(i);
+                finish();
             }
         }
 
         @Override
         protected void onCancelled() {
             mUploadImagesTask = null;
-            mProgressDialog.dismiss();
+            showProgress(false);
         }
     }
+
     //fill arraylist with the results of the images, received from the server
     private void populatOcrList() {
         myOcrResultsList = new ArrayList<>();
@@ -761,6 +642,42 @@ public class ProcessOcrActivity extends Activity {
             myOcrResultsList.add(new OcrResult(extractedText, processingStarted, processingFinished, processingTime, thumbnailUrl, imageUrl, createdAt));
 
         }
-        mProgressDialog.dismiss();
+        showProgress(false);
+    }
+
+    /**
+     * Shows the progress bar
+     */
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
+    private void showProgress(final boolean show) {
+        // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
+        // for very easy animations. If available, use these APIs to fade-in
+        // the progress spinner.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
+            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+
+            mListView.setVisibility(show ? View.GONE : View.VISIBLE);
+            mListView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    mListView.setVisibility(show ? View.GONE : View.VISIBLE);
+                }
+            });
+
+            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            mProgressView.animate().setDuration(shortAnimTime).alpha(
+                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+                @Override
+                public void onAnimationEnd(Animator animation) {
+                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+                }
+            });
+        } else {
+            // The ViewPropertyAnimator APIs are not available, so simply show
+            // and hide the relevant UI components.
+            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            mListView.setVisibility(show ? View.GONE : View.VISIBLE);
+        }
     }
 }

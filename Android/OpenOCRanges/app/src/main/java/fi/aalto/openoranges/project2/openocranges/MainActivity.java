@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -51,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton mRefreshButton;
     private Button mLogoutButton;
     private TimeoutOperation mSleeper = null;
+    private String mSleeperAction = null;
 
     public static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     OkHttpClient client = new OkHttpClient();
@@ -101,10 +103,10 @@ public class MainActivity extends AppCompatActivity {
         mReadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                mSleeperAction = "read";
+                mSleeper = new TimeoutOperation();
+                mSleeper.execute((Void) null);
                 showProgress(true);
-                Intent i = new Intent(MainActivity.this, TakePictureActivity.class);
-                i.putExtra("token", mToken);
-                startActivity(i);
             }
         });
 
@@ -121,6 +123,7 @@ public class MainActivity extends AppCompatActivity {
         mRefreshButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                mSleeperAction = "refresh";
                 mSleeper = new TimeoutOperation();
                 mSleeper.execute((Void) null);
                 showProgress(true);
@@ -157,7 +160,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View viewClicked, int position, long id) {
                 OcrResult clickedApp = myOcrResultsList.get(position);
-                Toast.makeText(MainActivity.this, "" + clickedApp.getCreatedAt(), Toast.LENGTH_LONG).show();
+                Intent i = new Intent(MainActivity.this, ShowActivity.class);
+                i.putExtra("token", mToken);
+                i.putExtra("timestamp", clickedApp.getCreatedAt());
+                i.putExtra("text", clickedApp.getExtractedText());
+                i.putExtra("imageUrl", clickedApp.getImageUrl());
+                i.putExtra("mModus", "Remote");
+                startActivity(i);
+                finish();
             }
         });
     }
@@ -201,9 +211,13 @@ public class MainActivity extends AppCompatActivity {
 
             //Fill the textview with the name of the app
             TextView nameText = (TextView) itemView.findViewById(R.id.nameText);
-            String filename = currentResult.getCreatedAt();
-            nameText.setText(filename);
-
+            String filename =  currentResult.getExtractedText();
+            if(filename.equals("")){
+                nameText.setText("No text recognized!");
+            }
+            else{
+                nameText.setText(Html.fromHtml(filename));
+            }
             return itemView;
         }
     }
@@ -481,6 +495,11 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         protected void onPostExecute(Void result) {
+            if(mSleeperAction.equals("read")){
+                Intent i = new Intent(MainActivity.this, TakePictureActivity.class);
+                i.putExtra("token", mToken);
+                startActivity(i);
+            }
         }
     }
 
