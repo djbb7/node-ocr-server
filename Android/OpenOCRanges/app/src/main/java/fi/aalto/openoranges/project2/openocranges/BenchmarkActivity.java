@@ -78,7 +78,7 @@ public class BenchmarkActivity extends AppCompatActivity {
             }
         });
 
-        mListView = findViewById(R.id.ResultView);
+        mListView = findViewById(R.id.Benchmarking);
         mProgressView = findViewById(R.id.save_progress);
     }
 

@@ -14,6 +14,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.text.Html;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -159,7 +160,14 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> parent, View viewClicked, int position, long id) {
                 OcrResult clickedApp = myOcrResultsList.get(position);
-                Toast.makeText(MainActivity.this, "" + clickedApp.getCreatedAt(), Toast.LENGTH_LONG).show();
+                Intent i = new Intent(MainActivity.this, ShowActivity.class);
+                i.putExtra("token", mToken);
+                i.putExtra("timestamp", clickedApp.getCreatedAt());
+                i.putExtra("text", clickedApp.getExtractedText());
+                i.putExtra("imageUrl", clickedApp.getImageUrl());
+                i.putExtra("mModus", "Remote");
+                startActivity(i);
+                finish();
             }
         });
     }
@@ -203,9 +211,13 @@ public class MainActivity extends AppCompatActivity {
 
             //Fill the textview with the name of the app
             TextView nameText = (TextView) itemView.findViewById(R.id.nameText);
-            String filename = currentResult.getCreatedAt();
-            nameText.setText(filename);
-
+            String filename =  currentResult.getExtractedText();
+            if(filename.equals("")){
+                nameText.setText("No text recognized!");
+            }
+            else{
+                nameText.setText(Html.fromHtml(filename));
+            }
             return itemView;
         }
     }

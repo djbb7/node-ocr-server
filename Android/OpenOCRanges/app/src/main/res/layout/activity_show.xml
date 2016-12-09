@@ -9,7 +9,7 @@
     android:fitsSystemWindows="true"
     tools:context="fi.aalto.openoranges.project2.openocranges.ShowActivity">
 
-    <RelativeLayout
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
@@ -63,51 +63,111 @@
         <FrameLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/AppBar">
+            >
 
             <LinearLayout
-                android:id="@+id/ResultView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="?attr/actionBarSize"
+            android:layout_marginTop="?attr/actionBarSize"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/mainView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:orientation="vertical"
-                >
+                android:orientation="vertical">
 
-                <ImageView
+        <TextView
+            android:id="@+id/createdTime"
+            android:background="#777777"
+            android:textColor="#FFFFFF"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/createdTime">
+
+            <ImageView
                     android:id="@+id/imageViewResult"
                     android:layout_width="match_parent"
-                    android:layout_height="350dp"/>
+                    android:layout_height="match_parent"/>
 
-                <TextView
+            <TextView
                     android:id="@+id/textViewResult"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
-
-            </LinearLayout>
-
-            <ProgressBar
-                android:id="@+id/save_progress"
-                style="?android:attr/progressBarStyleLarge"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_below="@id/AppBar"
-                android:layout_marginBottom="8dp"
-                android:visibility="gone" />
-
-            <Button
-                android:id="@+id/saveTxt"
-                android:text="Save text"
-                android:textColor="#FFFFFF"
-                android:background="@color/colorAccent"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textStyle="bold"
-                android:layout_gravity="bottom|right"
-                android:layout_marginBottom="10dp"
-                android:layout_marginRight="10dp"
-                />
+                    android:layout_height="match_parent"
+                    android:maxLines = "20"
+                    android:textSize="20dp"
+                    android:scrollbars = "vertical"/>
 
         </FrameLayout>
+        </LinearLayout>
+            </LinearLayout>
 
-    </RelativeLayout>
+        <LinearLayout
+                android:id="@+id/optionBar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@color/colorPrimary"
+                android:layout_gravity="bottom">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:weightSum="3">
+
+                    <Button
+                        android:id="@+id/retake"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@color/colorPrimaryDark"
+                        android:text="Retake"
+                        android:textStyle="bold"
+                        android:textColor="#FFFFFF"
+                        android:textSize="20dp"
+                        android:layout_weight="1"/>
+
+                    <ImageButton
+                        android:id="@+id/showImage"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="#00000000"
+                        android:src = "@drawable/icon_ocranges_white"
+                        android:layout_weight="1"
+                        />
+
+
+                    <Button
+                        android:id="@+id/saveTxt"
+                        android:text="Save text"
+                        android:textColor="#FFFFFF"
+                        android:background="@color/colorPrimaryDark"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:textStyle="bold"
+                        android:textSize="20dp"
+                        android:layout_weight="1"
+                        android:layout_gravity="right"
+                        />
+
+                </LinearLayout>
+            </LinearLayout>
+        </FrameLayout>
+
+
+        <ProgressBar
+            android:id="@+id/save_progress"
+            style="?android:attr/progressBarStyleLarge"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/AppBar"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone" />
+
+    </FrameLayout>
 
 </LinearLayout>
