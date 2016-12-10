@@ -40,6 +40,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import okhttp3.Authenticator;
+import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -74,22 +75,24 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
         Context context= getApplicationContext();
         OkHttpClient okHttpClient = new OkHttpClient();
 
-        /** An authenticator that knows no credentials and makes no attempt to authenticate. */
-        Authenticator authenticator = new Authenticator() {
-            @Override public Request authenticate(Route route, Response response) {
-                return response.request().newBuilder().header("Authorization", mToken).build();
-            }
-        };
-        client.newBuilder().authenticator(authenticator);
+        final OkHttpClient.Builder okHttpClientBuilder = new OkHttpClient.Builder()
+                .addInterceptor(new Interceptor() {
+                    @Override
+                    public Response intercept(Chain chain) throws IOException {
+                        final Request.Builder requestBuilder = chain.request().newBuilder();
+                        requestBuilder.addHeader("Authorization", mToken);
+                        return chain.proceed(requestBuilder.build());
+                    }
+                });
+        final ImagePipelineConfig imagePipelineConfig = OkHttpImagePipelineConfigFactory.newBuilder(
+                getApplicationContext(),
+                okHttpClientBuilder.build())
+                .build();
      try {
-         ImagePipelineConfig config = OkHttpImagePipelineConfigFactory
-                 .newBuilder(context, okHttpClient)
-                 .build();
-         Fresco.initialize(context, config);
+         Fresco.initialize(context, imagePipelineConfig);
      }catch(Exception e){
          e.printStackTrace();
      }
@@ -167,7 +170,6 @@ public class MainActivity extends AppCompatActivity {
                 i.putExtra("imageUrl", clickedApp.getImageUrl());
                 i.putExtra("mModus", "Remote");
                 startActivity(i);
-                finish();
             }
         });
     }

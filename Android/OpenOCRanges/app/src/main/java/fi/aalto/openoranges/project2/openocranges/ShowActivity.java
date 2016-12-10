@@ -20,6 +20,10 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.facebook.drawee.backends.pipeline.Fresco;
+import com.facebook.imagepipeline.backends.okhttp3.OkHttpImagePipelineConfigFactory;
+import com.facebook.imagepipeline.core.ImagePipelineConfig;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -27,6 +31,11 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+
+import okhttp3.Interceptor;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 
 public class ShowActivity extends AppCompatActivity {
 
@@ -73,6 +82,8 @@ public class ShowActivity extends AppCompatActivity {
 
         //Finding ImageUri from server
         final Uri mImageUri = Uri.parse(getString(R.string.serverWithoutSlash) + "" + mImageUrl);
+
+        initializeFresco();
 
         //Setting result for text
         mTextResult = (TextView) findViewById(R.id.textViewResult);
@@ -122,34 +133,33 @@ public class ShowActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if (mClickCounter == 0){
-                //View for taken picture
-                mTextResult.setVisibility(View.INVISIBLE);
-                mImageResult.setVisibility(View.VISIBLE);
+                    //View for taken picture
+                    mTextResult.setVisibility(View.INVISIBLE);
+                    mImageResult.setVisibility(View.VISIBLE);
 
                     if (mPictureUriList != null){
-                if (mPictureUriList != null && mPictureUriList.length == 1) {
-                    mPictureUri = Uri.parse(mPictureUriList[0]);
-                    mImageResult.setImageURI(mPictureUri);
-                }
-                else {
-                    mPictureUri = Uri.parse(mPictureUriList[1]);
-                    mImageResult.setImageURI(mPictureUri);
-                }}
-                        else if( mImageUri == null){
-                        mImageResult.setImageResource(R.drawable.no_image);
-                    }
 
-                        else{
-                            mImageResult.setImageURI(mImageUri);
+                        if (mPictureUriList != null && mPictureUriList.length == 1) {
+                            mPictureUri = Uri.parse(mPictureUriList[0]);
+                            mImageResult.setImageURI(mPictureUri);
+                        } else {
+                            mPictureUri = Uri.parse(mPictureUriList[1]);
+                            mImageResult.setImageURI(mPictureUri);
                         }
-                mClickCounter = 1;
+
+                    } else if( mImageUri == null){
+                        mImageResult.setImageResource(R.drawable.no_image);
+                    } else{
+                        mImageResult.setImageURI(mImageUri);
+                    }
+                    mClickCounter = 1;
                     mShowImage.setImageResource(R.drawable.show_text);
-                }
-                else{
+                } else{
                     mTextResult.setVisibility(View.VISIBLE);
                     mImageResult.setVisibility(View.INVISIBLE);
                     mShowImage.setImageResource(R.drawable.icon_ocranges_white);
-                    mClickCounter = 0;}
+                    mClickCounter = 0;
+                }
             }
         });
 
@@ -179,6 +189,26 @@ public class ShowActivity extends AppCompatActivity {
         mProgressView = findViewById(R.id.save_progress);
     }
 
+    public void initializeFresco(){
+        final OkHttpClient.Builder okHttpClientBuilder = new OkHttpClient.Builder()
+                .addInterceptor(new Interceptor() {
+                    @Override
+                    public Response intercept(Chain chain) throws IOException {
+                        final Request.Builder requestBuilder = chain.request().newBuilder();
+                        requestBuilder.addHeader("Authorization", mToken);
+                        return chain.proceed(requestBuilder.build());
+                    }
+                });
+        final ImagePipelineConfig imagePipelineConfig = OkHttpImagePipelineConfigFactory.newBuilder(
+                getApplicationContext(),
+                okHttpClientBuilder.build())
+                .build();
+        try {
+            Fresco.initialize(getApplicationContext(), imagePipelineConfig);
+        }catch(Exception e){
+            e.printStackTrace();
+        }
+    }
 
     public static void save(File file, String[] data) {
         FileOutputStream fos = null;
