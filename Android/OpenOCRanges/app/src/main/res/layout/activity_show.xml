@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:fresco="http://schemas.android.com/apk/res-auto"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:fitsSystemWindows="true"
@@ -90,10 +91,14 @@
             android:layout_height="match_parent"
             android:layout_below="@id/createdTime">
 
-            <ImageView
-                    android:id="@+id/imageViewResult"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"/>
+
+            <com.facebook.drawee.view.SimpleDraweeView
+                android:id="@+id/imageViewResult"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:adjustViewBounds="true"
+                android:contentDescription="photo Image"
+                fresco:placeholderImage="@drawable/icon_black" />
 
             <TextView
                     android:id="@+id/textViewResult"
