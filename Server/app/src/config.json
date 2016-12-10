@@ -2,5 +2,5 @@
 	"port": 8080,
 	"bodyLimit": "100kb",
 	"corsHeaders": ["Link"],
-	"database": "mongodb://127.0.0.1:27017/OCR_USERS"
+	"database": "mongodb://peterpan:dreamisover@ds119768.mlab.com:19768/mcc-2016-g15-p2"
 }
