@@ -186,7 +186,7 @@ public class ProcessOcrActivity extends Activity {
             mPictureUri = Uri.parse(mPictureUriList[0]);
             mPictureView.setImageUriAsync(mPictureUri);
         } else if (mPictureUriList != null && mPictureUriList.length > 1){
-            mMultipleImagesView.setText(mPictureUriList.length + " images selected");
+            mMultipleImagesView.setText(mPictureUriList.length + " images selected\n"+"Modus: "+mModus);
             mMultipleImagesView.setVisibility(View.VISIBLE);
             mPictureView.setVisibility(View.INVISIBLE);
         }
