@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import config from '../config.json';
 
 let Schema = mongoose.Schema;
 
@@ -32,9 +33,10 @@ export const File = mongoose.model('File', new Schema({
 	image: { type: Schema.Types.ObjectId, ref: 'Image' }
 }));
 
+console.log(parseInt(process.env.SOURCE_IMAGE_LIFETIME));
 // Images with 30min TTL
 export const Image = mongoose.model('Image', new Schema({
 	_user: { type: Schema.Types.ObjectId, ref: 'User' }, // Only used for access control
 	data: Buffer,
-	createdAt: { type: Date, expires: 1800, default: Date.now }
+	createdAt: { type: Date, expires: parseInt(process.env.SOURCE_IMAGE_LIFETIME) || config.SOURCE_IMAGE_LIFETIME, default: Date.now }
 }));
