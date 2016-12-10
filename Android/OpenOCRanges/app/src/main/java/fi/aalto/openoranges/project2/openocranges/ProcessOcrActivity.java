@@ -479,7 +479,7 @@ public class ProcessOcrActivity extends Activity {
                 if (uri.toString().startsWith("content://")) {
                     InputStream is = getContentResolver().openInputStream(uri);
 
-                    File targetFile = new File(getCacheDir().getAbsolutePath() + "/targetFile.tmp");
+                    File targetFile = new File(getCacheDir().getAbsolutePath() + "/targetFile"+i+".tmp");
                     OutputStream outStream = new FileOutputStream(targetFile);
 
                     byte[] buffer = new byte[8 * 1024];
@@ -489,7 +489,7 @@ public class ProcessOcrActivity extends Activity {
                     }
                     is.close();
                     outStream.close();
-                    f = new File(getCacheDir().getAbsolutePath() + "/targetFile.tmp");
+                    f = new File(getCacheDir().getAbsolutePath() + "/targetFile"+i+".tmp");
                     files.add(f);
                 } else {
                     f = new File(uri.getPath());
