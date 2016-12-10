@@ -345,11 +345,13 @@ public class TakePictureActivity extends AppCompatActivity {
             }
 
             if (mOcrOption.equals("Benchmark")){
-                Intent i = new Intent(TakePictureActivity.this, BenchmarkActivity.class);
+                Intent i = new Intent(TakePictureActivity.this, ProcessOcrActivity.class);
                 i.putExtra("mPictureUri", mPictureUri.toString());
+                i.putExtra("mModus", mOcrOption);
                 i.putExtra("token", mToken);
+                i.putExtra("mOrientation", "" + getResources().getConfiguration().orientation);
+
                 startActivity(i);
-                finish();
             }
             else{
                 Intent i = new Intent(TakePictureActivity.this, ProcessOcrActivity.class);
