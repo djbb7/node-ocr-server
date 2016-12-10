@@ -58,12 +58,12 @@ public class ProcessOcrActivity extends Activity {
     private Button mProcessOcr;
 
     private CropImageView mPictureView;
+    private TextView mMultipleImagesView;
     private Uri mPictureUri;
     private String[] mPictureUriList;
     private TessOCR mTessOCR;
     private String mTimestamp;
     private static final String TAG = "ProcessOcrActivity";
-    TextView textView;
     public static final String lang = "eng";
     public static final String DATA_PATH = Environment.getExternalStorageDirectory().toString() + "/OpenOCRanges/";
     public static final String path = Environment.getExternalStorageDirectory().toString() + "/OpenTxtFiles";
@@ -110,7 +110,6 @@ public class ProcessOcrActivity extends Activity {
     private List<OcrResult> myOcrResultsList = new ArrayList<>();
 
     String text;
-    private String timestamp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,7 +117,6 @@ public class ProcessOcrActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_processocr);
 
-        textView = (TextView) findViewById(R.id.editText_view);
         try {
             mPictureUriList = getIntent().getStringArrayExtra("mPictureUriList");
         } catch (Exception e) {
@@ -178,6 +176,7 @@ public class ProcessOcrActivity extends Activity {
 
         //View for taken picture
         mPictureView = (CropImageView) findViewById(R.id.picture_view);
+        mMultipleImagesView = (TextView) findViewById(R.id.multiple_images);
         if (getIntent().getStringExtra("mOrientation").equals("1")) {
             mPictureUri = Uri.parse(getIntent().getStringExtra("mPictureUri"));
             mPictureUriList = new String[1];
@@ -186,7 +185,12 @@ public class ProcessOcrActivity extends Activity {
         } else if (mPictureUriList != null && mPictureUriList.length == 1) {
             mPictureUri = Uri.parse(mPictureUriList[0]);
             mPictureView.setImageUriAsync(mPictureUri);
-        } else {
+        } else if (mPictureUriList != null && mPictureUriList.length > 1){
+            mMultipleImagesView.setText(mPictureUriList.length + " images selected");
+            mMultipleImagesView.setVisibility(View.VISIBLE);
+            mPictureView.setVisibility(View.INVISIBLE);
+        }
+        else{
             mPictureUri = Uri.parse(mPictureUriList[0]);
             mPictureView.setImageUriAsync(mPictureUri);
         }
@@ -198,6 +202,8 @@ public class ProcessOcrActivity extends Activity {
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(ProcessOcrActivity.this, TakePictureActivity.class);
+                i.putExtra("token", mToken);
+                i.putExtra("mode", mModus);
                 startActivity(i);
                 finish();
             }
@@ -249,7 +255,7 @@ public class ProcessOcrActivity extends Activity {
         mTessOCR = new TessOCR();
 
         mProgressView = (View) findViewById(R.id.load_progress);
-        mListView = (View) findViewById(R.id.picture_view);
+        mListView = (View) findViewById(R.id.main_screen);
     }
 
     public void startBenchmarkActivity() {
@@ -273,6 +279,11 @@ public class ProcessOcrActivity extends Activity {
 
     public void doBenchmark() {
         remoteStart = System.currentTimeMillis();
+
+        showProgress(true);
+        mRetake.setEnabled(false);
+        mProcessOcr.setEnabled(false);
+
         //start remote OCR process
         mUploadImagesTask = new uploadImagesTask();
         mUploadImagesTask.execute((Void) null);
@@ -712,6 +723,9 @@ public class ProcessOcrActivity extends Activity {
 
             } else {
                 Toast.makeText(ProcessOcrActivity.this, message, Toast.LENGTH_LONG).show();
+                mRetake.setEnabled(true);
+                mProcessOcr.setEnabled(true);
+                showProgress(false);
             }
         }
 
@@ -753,7 +767,7 @@ public class ProcessOcrActivity extends Activity {
                     try {
                         JSONObject myjson = new JSONObject(response.body().string().toString());
                         text = myjson.getString("extractedText");
-                        timestamp = myjson.getString("createdAt");
+                        mTimestamp = myjson.getString("createdAt");
                         JSONArray the_json_array = myjson.getJSONArray("files");
                         int size = the_json_array.length();
                         arrays = new ArrayList<JSONObject>();
@@ -808,9 +822,9 @@ public class ProcessOcrActivity extends Activity {
                                     Toast.makeText(ProcessOcrActivity.this, "Time exceeded, we are sorry!", Toast.LENGTH_SHORT).show();
                                     mRetake.setEnabled(true);
                                     mProcessOcr.setEnabled(true);
+                                    showProgress(false);
                                 }
                             });
-                            showProgress(false);
                             return arrays;
                         }
                     }
@@ -830,6 +844,9 @@ public class ProcessOcrActivity extends Activity {
             //checks if received list is empty or not
             if (list == null) {
                 Toast.makeText(ProcessOcrActivity.this, "Results are not available due to missing internet connection!", Toast.LENGTH_LONG).show();
+                mRetake.setEnabled(true);
+                mProcessOcr.setEnabled(true);
+                showProgress(false);
             } else {
                 Toast.makeText(ProcessOcrActivity.this, "OCR SUCCESS", Toast.LENGTH_LONG).show();
                 arrays = list;

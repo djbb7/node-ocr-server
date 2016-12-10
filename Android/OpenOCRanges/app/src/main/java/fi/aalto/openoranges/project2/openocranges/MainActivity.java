@@ -214,11 +214,11 @@ public class MainActivity extends AppCompatActivity {
             //Fill the textview with the name of the app
             TextView nameText = (TextView) itemView.findViewById(R.id.nameText);
             String filename =  currentResult.getExtractedText();
-            if(filename.equals("")){
+            if(filename.equals("null")){
                 nameText.setText("No text recognized!");
             }
             else{
-                nameText.setText(Html.fromHtml(filename));
+                nameText.setText(filename);
             }
             return itemView;
         }
@@ -339,7 +339,14 @@ public class MainActivity extends AppCompatActivity {
             if (list == null) {
                 showProgress(false);
                 Toast.makeText(MainActivity.this, "List could not be refreshed due to missing internet connection!", Toast.LENGTH_LONG).show();
-            } else {
+            }
+            /*else if (mToken == null){
+                Toast.makeText(MainActivity.this, "Logout due to expired session!", Toast.LENGTH_SHORT).show();
+                Intent i = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(i);
+                finish();
+            } */
+            else {
                 mHistoryList = null;
                 arrays = list;
                 populatOcrList();
@@ -410,10 +417,19 @@ public class MainActivity extends AppCompatActivity {
                 Intent i = new Intent(MainActivity.this, LoginActivity.class);
                 startActivity(i);
                 finish();
-            } else {
-                Toast.makeText(MainActivity.this, "Server connection failed!", Toast.LENGTH_SHORT).show();
             }
-        }
+            /*else if (mToken == null){
+                Toast.makeText(MainActivity.this, "Logout without valid token!", Toast.LENGTH_SHORT).show();
+                Intent i = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(i);
+                finish();
+            } */
+            else
+                {
+                    Toast.makeText(MainActivity.this, "Server connection failed!", Toast.LENGTH_SHORT).show();
+                }
+            }
+
 
         @Override
         protected void onCancelled() {
