@@ -14,19 +14,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         tools:context=".ProcessOcrActivity">
-        <View
+
+        <com.theartofdev.edmodo.cropper.CropImageView
+            android:id="@+id/picture_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:id="@+id/resultView"/>
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="216dp"
-            android:inputType="textMultiLine"
-            android:ems="10"
-            android:id="@+id/editText_view"
-            android:minHeight="200dp"
-            android:layout_gravity="bottom"
-            />
+            android:layout_marginBottom="?android:attr/actionBarSize"/>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -70,11 +63,7 @@
             </LinearLayout>
         </LinearLayout>
 
-        <com.theartofdev.edmodo.cropper.CropImageView
-            android:id="@+id/picture_view"
-            android:layout_width="match_parent"
-            android:layout_height="350dp"
-            android:layout_marginBottom="?android:attr/actionBarSize"/>
+
         <ProgressBar
             android:id="@+id/load_progress"
             style="?android:attr/progressBarStyleLarge"

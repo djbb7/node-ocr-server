@@ -64,6 +64,7 @@ public class TakePictureActivity extends AppCompatActivity {
     String[] mImageUriList;
 
     private String mToken;
+    private String mMode;
 
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -92,6 +93,11 @@ public class TakePictureActivity extends AppCompatActivity {
 
         //post Token from previous activity
         mToken = getIntent().getStringExtra("token");
+        mMode = getIntent().getStringExtra("mode");
+        if (mMode == null){
+            mMode = "Remote";
+        }
+
 
         //Button to take picture
         FloatingActionButton mTakePicture = (FloatingActionButton) findViewById(R.id.takePicture);
@@ -171,7 +177,8 @@ public class TakePictureActivity extends AppCompatActivity {
 
         //Default modus is remote
         mModus = (TextView) findViewById(R.id.modus);
-        mModus.setText("Modus: Remote");
+        mModus.setText("Modus: " + mMode);
+
         // ATTENTION: This was auto-generated to implement the App Indexing API.
         // See https://g.co/AppIndexing/AndroidStudio for more information.
         client = new GoogleApiClient.Builder(this).addApi(AppIndex.API).build();

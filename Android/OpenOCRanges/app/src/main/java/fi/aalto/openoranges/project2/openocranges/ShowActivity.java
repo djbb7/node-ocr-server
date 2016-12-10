@@ -126,6 +126,7 @@ public class ShowActivity extends AppCompatActivity {
                 mSleeper = new TimeoutOperation();
                 mSleeper.execute((Void) null);
                 showProgress(true);
+                mCreatedTime.setVisibility(View.INVISIBLE);
             }
         });
 
@@ -172,7 +173,9 @@ public class ShowActivity extends AppCompatActivity {
                 mSleeperAction = "save";
                 mSleeper = new TimeoutOperation();
                 mSleeper.execute((Void) null);
+                mCreatedTime.setVisibility(View.INVISIBLE);
                 showProgress(true);
+
 
                 //Creates a text file properly but the textfile is empty...need to be fixed
                 String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
@@ -294,10 +297,12 @@ public class ShowActivity extends AppCompatActivity {
             if(mSleeperAction.equals("read")){
                 Intent i = new Intent(ShowActivity.this, TakePictureActivity.class);
                 i.putExtra("token", mToken);
+                i.putExtra("mode",mModus);
                 startActivity(i);
             }
             else{
                 showProgress(false);
+                mCreatedTime.setVisibility(View.VISIBLE);
                 Toast.makeText(ShowActivity.this, "Textfile saved", Toast.LENGTH_SHORT).show();
             }
         }

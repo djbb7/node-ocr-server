@@ -39,7 +39,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 import okhttp3.MediaType;
@@ -52,13 +54,13 @@ import okhttp3.Response;
 public class ProcessOcrActivity extends Activity {
 
     private Button mRetake;
-    private Button mAddPicture;
     private Button mProcessOcr;
 
     private CropImageView mPictureView;
     private Uri mPictureUri;
     private String[] mPictureUriList;
     private TessOCR mTessOCR;
+    private String mTimestamp;
     private static final String TAG = "ProcessOcrActivity";
     TextView textView;
     public static final String lang = "eng";
@@ -98,7 +100,6 @@ public class ProcessOcrActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_processocr);
 
-        textView = (TextView) findViewById(R.id.editText_view);
         try {
             mPictureUriList = getIntent().getStringArrayExtra("mPictureUriList");
         } catch (Exception e) {
@@ -191,7 +192,8 @@ public class ProcessOcrActivity extends Activity {
                 //if remote modus is chosen do ocr processing on server
                 if (mModus.equals("Remote")) {
                     showProgress(true);
-
+                    mRetake.setEnabled(false);
+                    mProcessOcr.setEnabled(false);
                     mUploadImagesTask = new uploadImagesTask();
                     mUploadImagesTask.execute((Void) null);
                 } else if (mModus.equals("Local")) {
@@ -221,7 +223,7 @@ public class ProcessOcrActivity extends Activity {
         mTessOCR = new TessOCR();
 
         mProgressView = (View) findViewById(R.id.load_progress);
-        mListView = (View) findViewById(R.id.resultView);
+        mListView = (View) findViewById(R.id.picture_view);
     }
 
 
@@ -236,19 +238,29 @@ public class ProcessOcrActivity extends Activity {
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        // TODO Auto-generated method stub
+
                         if (result != null && mModus.equals("Local")) {
                             extractedText_multipleImages_local += result;
                             lastImageToProcess_multiple_local = false;
+                            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                            mTimestamp = dateFormat.format(new Date());
+
                             Intent i = new Intent(ProcessOcrActivity.this, ShowActivity.class);
                             i.putExtra("mModus", mModus);
                             i.putExtra("token", mToken);
+                            i.putExtra("timestamp", mTimestamp);
                             i.putExtra("text", result);
                             i.putExtra("mPictureUriList", mPictureUriList);
 
                             startActivity(i);
-                            finish();
-                            showProgress(false);
                         }
+                        else{
+                            showProgress(false);
+                            mRetake.setEnabled(true);
+                            mProcessOcr.setEnabled(true);
+                        }
+
 
                     }
 
@@ -568,13 +580,12 @@ public class ProcessOcrActivity extends Activity {
 
         protected void onPostExecute(Boolean success) {
             mUploadImagesTask = null;
-            showProgress(false);
 
             if (success) {
 
                 mGetResultsTask = new getResultsTask();
                 mGetResultsTask.execute((Void) null);
-                Toast.makeText(ProcessOcrActivity.this, "SUCCESS!", Toast.LENGTH_LONG).show();
+                Toast.makeText(ProcessOcrActivity.this, "Proceeding image...", Toast.LENGTH_LONG).show();
 
             } else {
                 Toast.makeText(ProcessOcrActivity.this, message, Toast.LENGTH_LONG).show();
@@ -585,6 +596,8 @@ public class ProcessOcrActivity extends Activity {
         protected void onCancelled() {
             mUploadImagesTask = null;
             showProgress(false);
+            mRetake.setEnabled(true);
+            mProcessOcr.setEnabled(true);
         }
     }
 
@@ -641,7 +654,7 @@ public class ProcessOcrActivity extends Activity {
                             try {
                                 JSONObject myjson = new JSONObject(response.body().string().toString());
                                 text = myjson.getString("extractedText");
-                                timestamp = myjson.getString("createdAt");
+                                mTimestamp = myjson.getString("createdAt");
                                 JSONArray the_json_array = myjson.getJSONArray("files");
                                 int size = the_json_array.length();
                                 arrays = new ArrayList<JSONObject>();
@@ -670,8 +683,11 @@ public class ProcessOcrActivity extends Activity {
                             runOnUiThread(new Runnable() {
                                 public void run() {
                                     Toast.makeText(ProcessOcrActivity.this, "Time exceeded, we are sorry!", Toast.LENGTH_SHORT).show();
+                                    mRetake.setEnabled(true);
+                                    mProcessOcr.setEnabled(true);
                                 }
                             });
+                            showProgress(false);
                             return arrays;
                         }
                     }
@@ -687,7 +703,6 @@ public class ProcessOcrActivity extends Activity {
 
         protected void onPostExecute(ArrayList<JSONObject> list) {
             mGetResultsTask = null;
-            showProgress(false);
 
             //checks if received list is empty or not
             if (list == null) {
@@ -701,7 +716,7 @@ public class ProcessOcrActivity extends Activity {
                 i.putExtra("mModus", mModus);
                 i.putExtra("token", mToken);
                 i.putExtra("text", text);
-                i.putExtra("timestamp", timestamp);
+                i.putExtra("timestamp", mTimestamp);
                 i.putExtra("mPictureUriList", mPictureUriList);
                 // i.putExtra("myOcrResultsList", (Serializable) myOcrResultsList);
 
@@ -714,6 +729,8 @@ public class ProcessOcrActivity extends Activity {
         protected void onCancelled() {
             mUploadImagesTask = null;
             showProgress(false);
+            mRetake.setEnabled(true);
+            mProcessOcr.setEnabled(true);
         }
     }
 
@@ -750,6 +767,8 @@ public class ProcessOcrActivity extends Activity {
 
         }
         showProgress(false);
+        mRetake.setEnabled(true);
+        mProcessOcr.setEnabled(true);
     }
 
     /**
