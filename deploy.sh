@@ -8,6 +8,7 @@ WD=`pwd`
 
 PROJECT_ID=mcc-2016-g15-p2
 SERVICE_FILE="${CONFIG_PATH}/mcc-2016-g15-p2-ce172c4f2841.json"
+export GOOGLE_APPLICATION_CREDENTIALS="${WD}/${SERVICE_FILE}"
 DOCKER_IMAGE="gcr.io/mcc-2016-g15-p2/ocr-server"
 CLUSTER_NAME="ocr-server"
 
@@ -28,21 +29,27 @@ echo -e "${NC}"
 
 #install docker
 
-#install java
-
 #install gcloud
+#apt-get update
+#apt-get install python
+#wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-137.0.1-linux-x86_64.tar.gz
+#tar xvzf google-cloud-sdk-137.0.1-linux-x86_64.tar.gz
+#cd google-cloud-sdk
+#./install.sh
+#cd ..
+#source .bashrc
 
 #install kubernetes
-
-#install android sdk
+# gcloud components install kubectl
 
 ######################
 # configure
 
 #authenticate gcloud
-gcloud auth activate-service-account --key-file $SERVICE_FILE
+gcloud auth activate-service-account proj-owner@mcc-2016-g15-p2.iam.gserviceaccount.com --key-file $SERVICE_FILE
 
 #authenticate kubernetes
+gcloud auth application-default login proj-owner@mcc-2016-g15-p2.iam.gserviceaccount.com --key-file $SERVICE_FILE
 
 # set gcloud project id
 gcloud config set project $PROJECT_ID
@@ -85,7 +92,7 @@ while true; do
 done;
 
 echo -e "\n\n${ORANGE}Setting IP to dynamic DNS...${NC}"
-curl "https://www.duckdns.org/update?domains=mcc2016g15p2&token=6ad8a0b3-7a22-49da-91b0-05d5745565d5&ip=${IP}&verbose=true"
+curl "https://www.duckdns.org/update?domains=openocranges&token=6ad8a0b3-7a22-49da-91b0-05d5745565d5&ip=${IP}&verbose=true"
 
 #create mongodb cluster
 
