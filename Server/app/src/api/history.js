@@ -8,7 +8,7 @@ export default ({ config }) => {
 
 	history.get('/', check_user, (req, res) => {
 		var skip = 0;
-		var limit = 10;
+		var limit = 17;
 
 		if(req.query.skip)
 			skip = parseInt(req.query.skip);
@@ -19,7 +19,7 @@ export default ({ config }) => {
 		Transaction.find({
 			_user: req.user._id
 		}).
-		sort({ createdAt: 1}).
+		sort({ createdAt: -1}).
 		skip(skip).
 		limit(limit).
 		populate('files').
