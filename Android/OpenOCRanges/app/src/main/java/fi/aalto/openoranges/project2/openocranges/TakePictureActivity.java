@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Matrix;
@@ -121,11 +120,12 @@ public class TakePictureActivity extends AppCompatActivity {
             public void onClick(View view) {
 
                 Intent intent;
-                intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
-                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                startActivityForResult(intent, 200);
 
-                /*if (Build.VERSION.SDK_INT < 19) {
+                /*intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+                intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                startActivityForResult(intent, 200);*/
+
+               /* if (Build.VERSION.SDK_INT < 19) {
                     intent = new Intent();
                     intent.setAction(Intent.ACTION_GET_CONTENT);
                     intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
@@ -138,6 +138,19 @@ public class TakePictureActivity extends AppCompatActivity {
                     intent.setType("image*//*");
                     startActivityForResult(intent, 200);
                 }*/
+                if (Build.VERSION.SDK_INT < 19) {
+                    intent = new Intent();
+                    intent.setAction(Intent.ACTION_GET_CONTENT);
+                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                    intent.setType("image/*");
+                    startActivityForResult(intent, 200);
+                } else {
+                    intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+                    intent.addCategory(Intent.CATEGORY_OPENABLE);
+                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                    intent.setType("image/*");
+                    startActivityForResult(intent, 200);
+                }
             }
         });
         mGallery.bringToFront();
@@ -222,7 +235,7 @@ public class TakePictureActivity extends AppCompatActivity {
         return false;
     }
 
-    /*@Override
+    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == Activity.RESULT_OK) {
             getPickImageResultUri(data);
@@ -237,9 +250,9 @@ public class TakePictureActivity extends AppCompatActivity {
             finish();
 
         }
-    }*/
+    }
 
-    @Override
+   /* @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         try {
@@ -266,7 +279,7 @@ public class TakePictureActivity extends AppCompatActivity {
                     .show();
         }
 
-    }
+    }*/
 
 
 

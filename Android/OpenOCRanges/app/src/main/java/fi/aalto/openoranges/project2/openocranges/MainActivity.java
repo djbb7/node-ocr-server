@@ -156,7 +156,7 @@ public class MainActivity extends AppCompatActivity {
         registerClickCallback();
     }
 
-    //Method for starting application and register which app is clicked
+    //Method for showing a history entry and register which entry is clicked
     private void registerClickCallback() {
         ListView list = (ListView) findViewById(R.id.oo_AppsListView);
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {

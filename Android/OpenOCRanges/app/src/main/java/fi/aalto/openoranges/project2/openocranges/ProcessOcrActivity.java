@@ -4,13 +4,12 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.ProgressDialog;
-import android.content.ComponentName;
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.ColorMatrix;
 import android.graphics.ColorMatrixColorFilter;
@@ -76,6 +75,10 @@ public class ProcessOcrActivity extends Activity {
     private String mTransactionID;
     private String href;
 
+    private String extractedText_multipleImages_local = "";
+
+    private Boolean lastImageToProcess_multiple_local;
+
     private View mProgressView;
     private View mListView;
 
@@ -87,6 +90,7 @@ public class ProcessOcrActivity extends Activity {
     private List<OcrResult> myOcrResultsList = new ArrayList<>();
 
     String text;
+    private String timestamp;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -100,7 +104,7 @@ public class ProcessOcrActivity extends Activity {
         } catch (Exception e) {
 
         }
-        //final SelectedPictures mSelectedPictures = ((SelectedPictures) getApplicationContext());
+
 
         //post Token from previous activity
         mToken = getIntent().getStringExtra("token");
@@ -156,7 +160,7 @@ public class ProcessOcrActivity extends Activity {
         mPictureView = (CropImageView) findViewById(R.id.picture_view);
         if (getIntent().getStringExtra("mOrientation").equals("1")) {
             mPictureUri = Uri.parse(getIntent().getStringExtra("mPictureUri"));
-            mPictureUriList = new String [1];
+            mPictureUriList = new String[1];
             mPictureUriList[0] = mPictureUri.toString();
             mPictureView.setImageUriAsync(mPictureUri);
         } else if (mPictureUriList != null && mPictureUriList.length == 1) {
@@ -166,6 +170,7 @@ public class ProcessOcrActivity extends Activity {
             mPictureUri = Uri.parse(mPictureUriList[0]);
             mPictureView.setImageUriAsync(mPictureUri);
         }
+
 
         //Button to retake picture
         mRetake = (Button) findViewById(R.id.Retake);
@@ -189,14 +194,22 @@ public class ProcessOcrActivity extends Activity {
 
                     mUploadImagesTask = new uploadImagesTask();
                     mUploadImagesTask.execute((Void) null);
-                } else {
-                    try {
-                        Bitmap cropped = mPictureView.getCroppedImage(500, 500);
-                        if (cropped != null)
-                            mPictureView.setImageBitmap(cropped);
+                } else if (mModus.equals("Local")) {
 
-                        //mImage.setImageBitmap(converted);
-                        doOCR(convertColorIntoBlackAndWhiteImage(cropped));
+                    try {
+                        //if User selects only one Picture do this otherwise go to else-part
+                        if (mPictureUriList.length < 2) {
+                            Bitmap cropped = mPictureView.getCroppedImage(500, 500);
+                            if (cropped != null) {
+                                mPictureView.setImageBitmap(cropped);
+                            }
+                            doOCR(convertColorIntoBlackAndWhiteImage(cropped));
+                        } else {
+                            lastImageToProcess_multiple_local = false;
+
+                            doOCRMultiple();
+
+                        }
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -221,13 +234,11 @@ public class ProcessOcrActivity extends Activity {
                 final String result = mTessOCR.getOCRResult(bitmap).toLowerCase();
 
                 runOnUiThread(new Runnable() {
-
                     @Override
                     public void run() {
-                        // TODO Auto-generated method stub
-                        if (result != null && !result.equals("")) {
-                            String s = result.trim();
-
+                        if (result != null && mModus.equals("Local")) {
+                            extractedText_multipleImages_local += result;
+                            lastImageToProcess_multiple_local = false;
                             Intent i = new Intent(ProcessOcrActivity.this, ShowActivity.class);
                             i.putExtra("mModus", mModus);
                             i.putExtra("token", mToken);
@@ -236,9 +247,9 @@ public class ProcessOcrActivity extends Activity {
 
                             startActivity(i);
                             finish();
+                            showProgress(false);
                         }
 
-                        showProgress(false);
                     }
 
                 });
@@ -252,6 +263,88 @@ public class ProcessOcrActivity extends Activity {
             t.join();
         } catch (InterruptedException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void doOCRMultiple() {
+        showProgress(true);
+
+        lastImageToProcess_multiple_local = false;
+
+        int size = mPictureUriList.length;
+        for (int i = 0; i < size; i++) {
+            if (i + 1 == size) {
+                lastImageToProcess_multiple_local = true;
+            }
+            File f;
+            if (mPictureUriList[i].startsWith("content://")) {
+
+                Uri uri = Uri.parse(mPictureUriList[i]);
+
+                InputStream is = null;
+                try {
+                    is = getContentResolver().openInputStream(uri);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+
+
+                File targetFile = new File(getCacheDir().getAbsolutePath() + "/targetFile" + i + ".tmp");
+                OutputStream outStream = null;
+                try {
+                    outStream = new FileOutputStream(targetFile);
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+
+                byte[] buffer = new byte[8 * 1024];
+                int bytesRead;
+                try {
+                    while ((bytesRead = is.read(buffer)) != -1) {
+                        outStream.write(buffer, 0, bytesRead);
+                    }
+                    is.close();
+                    outStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                f = new File(getCacheDir().getAbsolutePath() + "/targetFile" + i + ".tmp");
+                mPictureUriList[i] = f.toURI().toString();
+            }
+
+            Bitmap bitm = BitmapFactory.decodeFile(Uri.parse(mPictureUriList[i]).getPath());
+            mPictureView.setImageBitmap(bitm);
+            final Bitmap bitmap = convertColorIntoBlackAndWhiteImage(bitm);
+
+            Thread t = new Thread(new Runnable() {
+                public void run() {
+
+                    String result = mTessOCR.getOCRResult(bitmap).toLowerCase();
+                    extractedText_multipleImages_local = extractedText_multipleImages_local + result;
+
+                }
+
+
+            });
+
+            t.start();
+            try {
+                t.join();
+                if (lastImageToProcess_multiple_local == true) {
+                    lastImageToProcess_multiple_local = false;
+                    Intent j = new Intent(ProcessOcrActivity.this, ShowActivity.class);
+                    j.putExtra("mModus", mModus);
+                    j.putExtra("token", mToken);
+                    j.putExtra("text", extractedText_multipleImages_local);
+                    j.putExtra("mPictureUriList", mPictureUriList);
+                    startActivity(j);
+                    finish();
+                    showProgress(false);
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -371,10 +464,10 @@ public class ProcessOcrActivity extends Activity {
                 Uri uri = Uri.parse(list[i]);
 
                 File f;
-                if(uri.toString().startsWith("content://")){
+                if (uri.toString().startsWith("content://")) {
                     InputStream is = getContentResolver().openInputStream(uri);
 
-                    File targetFile = new File(getCacheDir().getAbsolutePath()+"/targetFile.tmp");
+                    File targetFile = new File(getCacheDir().getAbsolutePath() + "/targetFile.tmp");
                     OutputStream outStream = new FileOutputStream(targetFile);
 
                     byte[] buffer = new byte[8 * 1024];
@@ -384,7 +477,7 @@ public class ProcessOcrActivity extends Activity {
                     }
                     is.close();
                     outStream.close();
-                    f = new File(getCacheDir().getAbsolutePath()+"/targetFile.tmp");
+                    f = new File(getCacheDir().getAbsolutePath() + "/targetFile.tmp");
                     files.add(f);
                 } else {
                     f = new File(uri.getPath());
@@ -406,7 +499,7 @@ public class ProcessOcrActivity extends Activity {
         Response result = client.newCall(request).execute();
 
         // clean up
-        for(File file : files){
+        for (File file : files) {
             file.delete();
         }
 
@@ -524,6 +617,7 @@ public class ProcessOcrActivity extends Activity {
                     try {
                         JSONObject myjson = new JSONObject(response.body().string().toString());
                         text = myjson.getString("extractedText");
+                        timestamp = myjson.getString("createdAt");
                         JSONArray the_json_array = myjson.getJSONArray("files");
                         int size = the_json_array.length();
                         arrays = new ArrayList<JSONObject>();
@@ -547,6 +641,7 @@ public class ProcessOcrActivity extends Activity {
                             try {
                                 JSONObject myjson = new JSONObject(response.body().string().toString());
                                 text = myjson.getString("extractedText");
+                                timestamp = myjson.getString("createdAt");
                                 JSONArray the_json_array = myjson.getJSONArray("files");
                                 int size = the_json_array.length();
                                 arrays = new ArrayList<JSONObject>();
@@ -606,6 +701,7 @@ public class ProcessOcrActivity extends Activity {
                 i.putExtra("mModus", mModus);
                 i.putExtra("token", mToken);
                 i.putExtra("text", text);
+                i.putExtra("timestamp", timestamp);
                 i.putExtra("mPictureUriList", mPictureUriList);
                 // i.putExtra("myOcrResultsList", (Serializable) myOcrResultsList);
 

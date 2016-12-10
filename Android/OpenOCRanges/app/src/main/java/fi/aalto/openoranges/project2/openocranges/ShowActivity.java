@@ -87,15 +87,17 @@ public class ShowActivity extends AppCompatActivity {
 
         //Setting result for text
         mTextResult = (TextView) findViewById(R.id.textViewResult);
-        if (mText.equals("")){
+        if (mText == null || mText.equals("")) {
             mTextResult.setText("No text recognized!");
             mTextResult.setGravity(View.TEXT_ALIGNMENT_CENTER);
-        }
-        else{
-        mTextResult.setText(mText);
+        } else {
+            mTextResult.setText(mText);
         }
         mTextResult.setMovementMethod(new ScrollingMovementMethod());
 
+        if (mTimestamp == null || mTimestamp.equals("")) {
+            mTimestamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        }
         //Preparing view for source image
         mImageResult = (ImageView) findViewById(R.id.imageViewResult);
         mImageResult.setVisibility(View.INVISIBLE);
