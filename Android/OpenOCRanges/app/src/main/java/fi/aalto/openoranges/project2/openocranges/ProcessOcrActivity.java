@@ -105,7 +105,7 @@ public class ProcessOcrActivity extends Activity {
         //post Token from previous activity
         mToken = getIntent().getStringExtra("token");
         mModus = getIntent().getStringExtra("mModus");
-        
+
 
         String[] paths = new String[]{DATA_PATH, DATA_PATH + "tessdata/"};
 
@@ -360,19 +360,37 @@ public class ProcessOcrActivity extends Activity {
 
         final MediaType MEDIA_TYPE_JPEG = MediaType.parse("image/jpeg");
 
-
         MultipartBody requestBody = null;
 
+        ArrayList<File> files = new ArrayList();
         try {
             MultipartBody.Builder buildernew = new MultipartBody.Builder()
                     .setType(MultipartBody.FORM);   //Here you can add the fix number of data.
 
             for (int i = 0; i < list.length; i++) {
                 Uri uri = Uri.parse(list[i]);
-                File f = new File(uri.getPath());
-                if (f.exists()) {
-                    buildernew.addFormDataPart("photos[]", f.getName(), RequestBody.create(MEDIA_TYPE_JPEG, f));
+
+                File f;
+                if(uri.toString().startsWith("content://")){
+                    InputStream is = getContentResolver().openInputStream(uri);
+
+                    File targetFile = new File(getCacheDir().getAbsolutePath()+"/targetFile.tmp");
+                    OutputStream outStream = new FileOutputStream(targetFile);
+
+                    byte[] buffer = new byte[8 * 1024];
+                    int bytesRead;
+                    while ((bytesRead = is.read(buffer)) != -1) {
+                        outStream.write(buffer, 0, bytesRead);
+                    }
+                    is.close();
+                    outStream.close();
+                    f = new File(getCacheDir().getAbsolutePath()+"/targetFile.tmp");
+                    files.add(f);
+                } else {
+                    f = new File(uri.getPath());
                 }
+
+                buildernew.addFormDataPart("photos[]", f.getName(), RequestBody.create(MEDIA_TYPE_JPEG, f));
             }
 
             requestBody = buildernew.build();
@@ -385,7 +403,14 @@ public class ProcessOcrActivity extends Activity {
                 .addHeader("Authorization", mToken)
                 .post(requestBody)
                 .build();
-        return client.newCall(request).execute();
+        Response result = client.newCall(request).execute();
+
+        // clean up
+        for(File file : files){
+            file.delete();
+        }
+
+        return result;
     }
 
     /**
