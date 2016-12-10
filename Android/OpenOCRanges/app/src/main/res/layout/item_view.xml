@@ -27,6 +27,7 @@
         android:layout_marginLeft="17dp"
         android:layout_marginStart="17dp"
         android:textSize="20sp"
+        android:maxLines = "1"
         android:text="Appname"
         android:layout_alignBottom="@+id/imageView"
         android:layout_toRightOf="@+id/imageView"

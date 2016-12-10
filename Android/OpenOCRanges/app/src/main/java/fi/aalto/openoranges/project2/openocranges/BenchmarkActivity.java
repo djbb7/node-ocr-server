@@ -20,8 +20,9 @@ public class BenchmarkActivity extends AppCompatActivity {
     private Button mBackToMain;
     private TimeoutOperation mSleeper = null;
     private int mNumberImages;
-    private int mTimeLocal;
-    private int mTimeRemote;
+    private double mTimeLocal;
+    private double mTimeRemote;
+    private double mTimeBenchmark;
     private int mTimeFastLocal;
     private int mTimeSlowLocal;
     private int mPictureFastLocal;
@@ -52,20 +53,24 @@ public class BenchmarkActivity extends AppCompatActivity {
 
         //post Token from previous activity
         mToken = getIntent().getStringExtra("token");
+        mNumberImages = getIntent().getIntExtra("processedImages",0);
+        mTimeLocal = getIntent().getDoubleExtra("localProcessingTime", 9999);
+        mTimeRemote = getIntent().getDoubleExtra("remoteProcessingTime", 9999);
+        mTimeBenchmark = getIntent().getDoubleExtra("benchmarkProcessingTime", 9999);
 
         mTextResult = (TextView) findViewById(R.id.Benchmarking);
         //Setting benchmark text with variables
         mTextResult.setText("\nNumber of processed images:" + mNumberImages + "\n" +
                 "\n" +
                 "Local\n" +
-                "Processing time: " + mTimeLocal +  " (" + mMeanTimeLocal + ") ms\n" +
+                "Processing time: " + mTimeLocal + " (" + mMeanTimeLocal + ") ms\n" +
                 "Minimum: " + mTimeFastLocal + " ms (" + mPictureFastLocal + "); Maximum: " + mTimeSlowLocal + " (" + mPictureSlowLocal + ")\n" +
                 "\n" +
                 "Remote\n" +
-                "Processing time: " + mTimeRemote +  "(" + mMeanTimeRemote + ") ms\n" +
+                "Processing time: " + mTimeRemote + "(" + mMeanTimeRemote + ") ms\n" +
                 "Minimum: " + mTimeFastRemote + " ms (" + mPictureFastRemote + "); Maximum:" + mTimeSlowRemote + " (" + mPictureSlowRemote + ")\n" +
                 "Exchanged data: " + mDataExchange + "(" + mMeanDataExchange + ") bytes\n" +
-                "Minimum:" + mBytesMin +  " bytes (" + mPictureMin + "); Maximum: " + mBytesMax + " bytes (" + mPictureMax + ")");
+                "Minimum:" + mBytesMin + " bytes (" + mPictureMin + "); Maximum: " + mBytesMax + " bytes (" + mPictureMax + ")");
 
         mBackToMain = (Button) findViewById(R.id.backToMain);
         mBackToMain.setOnClickListener(new View.OnClickListener() {

@@ -49,6 +49,7 @@ import java.util.Date;
 public class TakePictureActivity extends AppCompatActivity {
 
     private SurfaceHolder mHolder;
+    private Bundle tempBundle;
     private Camera mCamera;
     private ImageButton mBack;
     private ImageButton mOptions;
@@ -76,6 +77,12 @@ public class TakePictureActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+
+        loadActivity();
+
+    }
+
+    protected void loadActivity(){
         setContentView(R.layout.activity_takepicture);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); // Make to run your application only in portrait mode
 
@@ -131,19 +138,6 @@ public class TakePictureActivity extends AppCompatActivity {
                 intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
                 startActivityForResult(intent, 200);*/
 
-               /* if (Build.VERSION.SDK_INT < 19) {
-                    intent = new Intent();
-                    intent.setAction(Intent.ACTION_GET_CONTENT);
-                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                    intent.setType("image*//*");
-                    startActivityForResult(intent, 200);
-                } else {
-                    intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
-                    intent.addCategory(Intent.CATEGORY_OPENABLE);
-                    intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                    intent.setType("image*//*");
-                    startActivityForResult(intent, 200);
-                }*/
                 if (Build.VERSION.SDK_INT < 19) {
                     intent = new Intent();
                     intent.setAction(Intent.ACTION_GET_CONTENT);
@@ -255,8 +249,9 @@ public class TakePictureActivity extends AppCompatActivity {
 
             startActivity(i);
             finish();
-
         }
+        else
+            loadActivity();
     }
 
    /* @Override
@@ -345,11 +340,13 @@ public class TakePictureActivity extends AppCompatActivity {
             }
 
             if (mOcrOption.equals("Benchmark")){
-                Intent i = new Intent(TakePictureActivity.this, BenchmarkActivity.class);
+                Intent i = new Intent(TakePictureActivity.this, ProcessOcrActivity.class);
                 i.putExtra("mPictureUri", mPictureUri.toString());
+                i.putExtra("mModus", mOcrOption);
                 i.putExtra("token", mToken);
+                i.putExtra("mOrientation", "" + getResources().getConfiguration().orientation);
+
                 startActivity(i);
-                finish();
             }
             else{
                 Intent i = new Intent(TakePictureActivity.this, ProcessOcrActivity.class);
