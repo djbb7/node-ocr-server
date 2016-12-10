@@ -11,6 +11,7 @@ import ocr from './api/ocr';
 import history from './api/history';
 import { version } from '../package.json';
 import multer from 'multer';
+import { setupUsers } from './api/schema';
 
 // setup middleware for handling multiform/form-data
 let memoryStorage = multer.memoryStorage();
@@ -59,6 +60,8 @@ if (process.env.USE_SSL) {
 	app.server = http.createServer(app);
 }
 
+// create initial users
+setupUsers();
 
 app.server.listen(process.env.PORT || config.port);
 
