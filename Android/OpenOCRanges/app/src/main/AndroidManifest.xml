@@ -46,6 +46,7 @@
         <activity
             android:name=".ProcessOcrActivity"
             android:label="ProcessOcr"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme">
         </activity>
         <activity

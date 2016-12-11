@@ -58,7 +58,7 @@ public class TakePictureActivity extends AppCompatActivity {
     private int MY_PERMISSIONS_REQUEST_CAMERA;
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE;
     private Uri mPictureUri;
-    private String mOcrOption = "Remote";
+    private String mOcrOption;
     private static final String TAG = "TakePictureActivity";
     public static final int MEDIA_TYPE_IMAGE = 1;
 
@@ -82,6 +82,7 @@ public class TakePictureActivity extends AppCompatActivity {
 
     }
 
+
     protected void loadActivity(){
         setContentView(R.layout.activity_takepicture);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); // Make to run your application only in portrait mode
@@ -104,6 +105,7 @@ public class TakePictureActivity extends AppCompatActivity {
         if (mMode == null){
             mMode = "Remote";
         }
+        mOcrOption = mMode;
 
 
         //Button to take picture
@@ -288,6 +290,7 @@ public class TakePictureActivity extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        loadActivity();
         //Write on storage permission
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
 

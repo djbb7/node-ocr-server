@@ -209,11 +209,11 @@ public class LoginActivity extends AppCompatActivity {
                 i.printStackTrace();
                 return false;
             }
-            runOnUiThread(new Runnable() {
+            /*runOnUiThread(new Runnable() {
                 public void run() {
                     Toast.makeText(LoginActivity.this, mToken, Toast.LENGTH_LONG).show();
                 }
-            });
+            });*/
 
             return true;
 

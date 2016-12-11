@@ -213,7 +213,7 @@ public class MainActivity extends AppCompatActivity {
 
             //Fill the textview with the name of the app
             TextView nameText = (TextView) itemView.findViewById(R.id.nameText);
-            String filename =  currentResult.getExtractedText();
+            String filename =  currentResult.getExtractedText().trim();
             if(filename.equals("null")){
                 nameText.setText("No text recognized!");
             }
@@ -346,6 +346,12 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(i);
                 finish();
             } */
+            else if(mToken == null){
+                Toast.makeText(MainActivity.this, "Logout due to invalid token", Toast.LENGTH_LONG).show();
+                Intent i = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(i);
+                finish();
+            }
             else {
                 mHistoryList = null;
                 arrays = list;
@@ -424,6 +430,12 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(i);
                 finish();
             } */
+            else if(mToken == null) {
+                Toast.makeText(MainActivity.this, "Logout with invalid token", Toast.LENGTH_LONG).show();
+                Intent i = new Intent(MainActivity.this, LoginActivity.class);
+                startActivity(i);
+                finish();
+            }
             else
                 {
                     Toast.makeText(MainActivity.this, "Server connection failed!", Toast.LENGTH_SHORT).show();

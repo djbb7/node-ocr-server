@@ -23,16 +23,19 @@ public class BenchmarkActivity extends AppCompatActivity {
     private double mTimeLocal;
     private double mTimeRemote;
     private double mTimeBenchmark;
-    private int mTimeFastLocal;
-    private int mTimeSlowLocal;
+    private long[] mTimeSingleLocal;
+    private double[] mTimeSingleRemote;
+    private int[] mByteSingleRemote;
+    private double mTimeFastLocal;
+    private double mTimeSlowLocal;
     private int mPictureFastLocal;
     private int mPictureSlowLocal;
+    private double mMeanTimeLocal;
     private int mPictureFastRemote;
     private int mPictureSlowRemote;
-    private int mTimeFastRemote;
-    private int mTimeSlowRemote;
-    private int mMeanTimeLocal;
-    private int mMeanTimeRemote;
+    private double mTimeFastRemote;
+    private double mTimeSlowRemote;
+    private double mMeanTimeRemote;
     private int mBytesMin;
     private int mBytesMax;
     private int mPictureMax;
@@ -58,19 +61,101 @@ public class BenchmarkActivity extends AppCompatActivity {
         mTimeRemote = getIntent().getDoubleExtra("remoteProcessingTime", 9999);
         mTimeBenchmark = getIntent().getDoubleExtra("benchmarkProcessingTime", 9999);
 
+        try {
+            mTimeSingleLocal = getIntent().getLongArrayExtra("localSingleTimes");
+            mTimeSingleRemote = getIntent().getDoubleArrayExtra("remoteSingleTimes");
+            mByteSingleRemote = getIntent().getIntArrayExtra("remoteSingleBytes");
+        }
+        catch (Exception e) {
+
+        }
+
+
+        if(mTimeSingleLocal != null){
+        int size = mTimeSingleLocal.length;
+        for (int i = 0; i < size; i++) {
+            if(i==0){
+                mPictureFastLocal = i;
+                mPictureSlowLocal = i;
+                mTimeFastLocal = mTimeSingleLocal[i];
+                mTimeSlowLocal = mTimeSingleLocal[i];
+            }
+            else{
+                if(mTimeSingleLocal[i] < mTimeFastLocal){
+                    mPictureFastLocal = i;
+                    mTimeFastLocal = mTimeSingleLocal[i];
+                }
+                else if(mTimeSingleLocal[i] > mTimeSlowLocal){
+                    mPictureFastLocal = i;
+                    mTimeSlowLocal = mTimeSingleLocal[i];
+                }
+            }
+        }
+
+        mMeanTimeLocal = mTimeLocal/size;}
+
+        else{
+            mMeanTimeLocal = mTimeLocal;
+            mTimeFastLocal = mTimeLocal;
+            mTimeSlowLocal = mTimeLocal;
+        }
+
+        if(mTimeSingleRemote != null) {
+            int size = mTimeSingleRemote.length;
+            for (int i = 0; i < size; i++) {
+                if (i == 0) {
+                    mPictureFastRemote = i;
+                    mPictureSlowRemote = i;
+                    mTimeFastRemote = mTimeSingleRemote[i];
+                    mTimeSlowRemote = mTimeSingleRemote[i];
+                } else {
+                    if (mTimeSingleRemote[i] < mTimeFastRemote) {
+                        mPictureFastRemote = i;
+                        mTimeFastRemote = mTimeSingleLocal[i];
+                    } else if (mTimeSingleRemote[i] > mTimeSlowRemote) {
+                        mPictureFastRemote = i;
+                        mTimeSlowRemote = mTimeSingleRemote[i];
+                    }
+                }
+            }
+            mMeanTimeRemote = mTimeRemote/size;
+        }
+
+        if(mByteSingleRemote != null) {
+            int size = mByteSingleRemote.length;
+            for (int i = 0; i < size; i++) {
+                if (i == 0) {
+                    mPictureMin = i;
+                    mPictureMax = i;
+                    mBytesMax = mByteSingleRemote[i];
+                    mBytesMin = mByteSingleRemote[i];
+                } else {
+                    if (mByteSingleRemote[i] < mBytesMin) {
+                        mPictureMin = i;
+                        mBytesMin = mByteSingleRemote[i];
+                    } else if (mByteSingleRemote[i] > mBytesMax) {
+                        mPictureMax = i;
+                        mBytesMax = mByteSingleRemote[i];
+                    }
+                }
+                mDataExchange = mDataExchange + mByteSingleRemote[i];
+            }
+            mMeanDataExchange = mDataExchange/size;
+        }
+
         mTextResult = (TextView) findViewById(R.id.Benchmarking);
         //Setting benchmark text with variables
-        mTextResult.setText("\nNumber of processed images:" + mNumberImages + "\n" +
+        mTextResult.setText("\nNumber of processed images: " + mNumberImages + "\n" +
                 "\n" +
                 "Local\n" +
                 "Processing time: " + mTimeLocal + " (" + mMeanTimeLocal + ") ms\n" +
                 "Minimum: " + mTimeFastLocal + " ms (" + mPictureFastLocal + "); Maximum: " + mTimeSlowLocal + " (" + mPictureSlowLocal + ")\n" +
                 "\n" +
                 "Remote\n" +
-                "Processing time: " + mTimeRemote + "(" + mMeanTimeRemote + ") ms\n" +
-                "Minimum: " + mTimeFastRemote + " ms (" + mPictureFastRemote + "); Maximum:" + mTimeSlowRemote + " (" + mPictureSlowRemote + ")\n" +
-                "Exchanged data: " + mDataExchange + "(" + mMeanDataExchange + ") bytes\n" +
-                "Minimum:" + mBytesMin + " bytes (" + mPictureMin + "); Maximum: " + mBytesMax + " bytes (" + mPictureMax + ")");
+                "Processing time: " + mTimeRemote*1000 + " (" + mMeanTimeRemote*1000 + ") ms\n" +
+                "Minimum: " + mTimeFastRemote*1000 + " ms (" + mPictureFastRemote + "); Maximum: " + mTimeSlowRemote*1000 + " (" + mPictureSlowRemote + ")\n" +
+                "Exchanged data: " + mDataExchange + " (" + mMeanDataExchange + ") bytes\n" +
+                "Minimum: " + mBytesMin + " bytes (" + mPictureMin + "); Maximum: " + mBytesMax + " bytes (" + mPictureMax + ")");
 
         mBackToMain = (Button) findViewById(R.id.backToMain);
         mBackToMain.setOnClickListener(new View.OnClickListener() {

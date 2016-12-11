@@ -24,6 +24,7 @@ import android.system.ErrnoException;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -91,6 +92,10 @@ public class ProcessOcrActivity extends Activity {
     private long remoteStart;
     private long remoteFinished;
     private double remoteDelta;
+    private long localIntermediate;
+    private long[] localSingleTimes;
+    private double[] remoteSingleTimes;
+    private int[] remoteSingleBytes;
 
     private long localStart;
     private long localFinished;
@@ -216,13 +221,13 @@ public class ProcessOcrActivity extends Activity {
             public void onClick(View view) {
                 //if remote modus is chosen do ocr processing on server
                 if (mModus.equals("Remote")) {
+                    Toast.makeText(ProcessOcrActivity.this, "Local OCR proceeding...", Toast.LENGTH_LONG).show();
                     showProgress(true);
                     mRetake.setEnabled(false);
                     mProcessOcr.setEnabled(false);
                     mUploadImagesTask = new uploadImagesTask();
                     mUploadImagesTask.execute((Void) null);
                 } else if (mModus.equals("Local")) {
-
                     try {
                         //if User selects only one Picture do this otherwise go to else-part
                         if (mPictureUriList.length < 2) {
@@ -241,11 +246,11 @@ public class ProcessOcrActivity extends Activity {
                         e.printStackTrace();
                     }
                 } else if (mModus.equals("Benchmark")) {
+                    Toast.makeText(ProcessOcrActivity.this, "Benchmarking started...", Toast.LENGTH_LONG).show();
                     showProgress(true);
-
+                    mRetake.setEnabled(false);
+                    mProcessOcr.setEnabled(false);
                     benchmarkStart = System.currentTimeMillis();
-                    localOcrDone = false;
-                    remoteOcrDone = false;
                     doBenchmark();
                 }
 
@@ -261,14 +266,16 @@ public class ProcessOcrActivity extends Activity {
     public void startBenchmarkActivity() {
         if (remoteOcrDone && localOcrDone) {
             benchmarkFinished = System.currentTimeMillis();
-            benchmarkDelta = (benchmarkStart - benchmarkFinished) / 1000.0;
+            benchmarkDelta = (benchmarkFinished-benchmarkStart);
             Intent i = new Intent(ProcessOcrActivity.this, BenchmarkActivity.class);
             i.putExtra("mModus", mModus);
             i.putExtra("token", mToken);
             //i.putExtra("processedImages", mPictureUriList.length);
+            i.putExtra("remoteSingleTimes", remoteSingleTimes);
+            i.putExtra("remoteSingleBytes", remoteSingleBytes);
             i.putExtra("processedImages", mPictureUriList.length);
             i.putExtra("mPictureUriList", mPictureUriList);
-
+            i.putExtra("localSingleTimes", localSingleTimes);
             i.putExtra("localProcessingTime", localDelta);
             i.putExtra("benchmarkProcessingTime", benchmarkDelta);
             i.putExtra("remoteProcessingTime", remoteDelta);
@@ -280,9 +287,8 @@ public class ProcessOcrActivity extends Activity {
     public void doBenchmark() {
         remoteStart = System.currentTimeMillis();
 
-        showProgress(true);
-        mRetake.setEnabled(false);
-        mProcessOcr.setEnabled(false);
+        remoteOcrDone = false;
+        localOcrDone = false;
 
         //start remote OCR process
         mUploadImagesTask = new uploadImagesTask();
@@ -344,6 +350,8 @@ public class ProcessOcrActivity extends Activity {
 
     public void doOCR(final Bitmap bitmap) {
         showProgress(true);
+        mRetake.setEnabled(false);
+        mProcessOcr.setEnabled(false);
 
         Thread t = new Thread(new Runnable() {
             public void run() {
@@ -375,11 +383,12 @@ public class ProcessOcrActivity extends Activity {
                             } else {
                                 extractedText_multipleImages_local = extractedText_multipleImages_local + result;
                                 localFinished = System.currentTimeMillis();
-                                localDelta = (localStart - localFinished) / 1000.0;
+                                localDelta = (localFinished - localStart);
                                 localOcrDone = true;
                                 startBenchmarkActivity();
                             }
-                        } else {
+                        }
+                        else {
                             showProgress(false);
                             mRetake.setEnabled(true);
                             mProcessOcr.setEnabled(true);
@@ -389,23 +398,18 @@ public class ProcessOcrActivity extends Activity {
                 });
 
             }
-
-            ;
         });
         t.start();
-        try {
-            t.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     public void doOCRMultiple() {
         showProgress(true);
-
+        mRetake.setEnabled(false);
+        mProcessOcr.setEnabled(false);
         lastImageToProcess_multiple_local = false;
-
+        localIntermediate = localStart;
         int size = mPictureUriList.length;
+        localSingleTimes = new long[mPictureUriList.length];
         String[] list = new String[mPictureUriList.length];
         for (int i = 0; i < size; i++) {
             if (i + 1 == size) {
@@ -452,45 +456,42 @@ public class ProcessOcrActivity extends Activity {
             mPictureView.setImageBitmap(bitm);
             final Bitmap bitmap = convertColorIntoBlackAndWhiteImage(bitm);
 
-            Thread t = new Thread(new Runnable() {
-                public void run() {
+            String result = mTessOCR.getOCRResult(bitmap).toLowerCase();
+            extractedText_multipleImages_local = extractedText_multipleImages_local + result;
 
-                    String result = mTessOCR.getOCRResult(bitmap).toLowerCase();
-                    extractedText_multipleImages_local = extractedText_multipleImages_local + result;
-
-                }
-
-
-            });
-
-            t.start();
-            try {
-                t.join();
                 if (mModus.equals("Local")) {
                     if (lastImageToProcess_multiple_local == true) {
                         lastImageToProcess_multiple_local = false;
+
+                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                        mTimestamp = dateFormat.format(new Date());
+
                         Intent j = new Intent(ProcessOcrActivity.this, ShowActivity.class);
                         j.putExtra("mModus", mModus);
                         j.putExtra("token", mToken);
+                        j.putExtra("timestamp",mTimestamp);
                         j.putExtra("text", extractedText_multipleImages_local);
                         j.putExtra("mPictureUriList", mPictureUriList);
                         startActivity(j);
                         finish();
-                        showProgress(false);
                     }
                 } else {
                     if (lastImageToProcess_multiple_local == true) {
                         lastImageToProcess_multiple_local = false;
                         localFinished = System.currentTimeMillis();
-                        localDelta = (localStart - localFinished) / 1000.0;
+                        localDelta = (localFinished - localStart);
                         Toast.makeText(this, "Local OCR has finished!", Toast.LENGTH_SHORT).show();
                         localOcrDone = true;
+                        localSingleTimes[i] = (localFinished-localIntermediate);
                         startBenchmarkActivity();
                     }
+                    else{
+                        localFinished = System.currentTimeMillis();
+                        localSingleTimes[i] = (localFinished-localIntermediate);
+                        localIntermediate = System.currentTimeMillis();
+                    }
                 }
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+
         }
     }
 
@@ -771,8 +772,12 @@ public class ProcessOcrActivity extends Activity {
                         JSONArray the_json_array = myjson.getJSONArray("files");
                         int size = the_json_array.length();
                         arrays = new ArrayList<JSONObject>();
+                        remoteSingleTimes = new double[size];
+                        remoteSingleBytes = new int[size];
                         for (int i = 0; i < size; i++) {
                             JSONObject json_results = the_json_array.getJSONObject(i);
+                            remoteSingleBytes[i] = json_results.length() + mPictureUriList[i].length();
+                            remoteSingleTimes[i] = Double.parseDouble(json_results.getString("processingTime"));
                             arrays.add(json_results);
                         }
                         JSONObject[] json = new JSONObject[arrays.size()];
@@ -784,7 +789,7 @@ public class ProcessOcrActivity extends Activity {
                     return arrays;
                 } else if (code == 202) {
                     //waiting for the server to process images
-                    while (counter < 20) {
+                    while (counter < 6) {
                         Thread.sleep(4000);
                         response = ProcessOcrActivity.this.get(server_url + href);
                         if (response.code() == 200) {
@@ -816,7 +821,7 @@ public class ProcessOcrActivity extends Activity {
                             return arrays;
                         }
                         counter++;
-                        if (counter >= 20) {
+                        if (counter >= 6) {
                             runOnUiThread(new Runnable() {
                                 public void run() {
                                     Toast.makeText(ProcessOcrActivity.this, "Time exceeded, we are sorry!", Toast.LENGTH_SHORT).show();
@@ -855,7 +860,7 @@ public class ProcessOcrActivity extends Activity {
                 if (mModus.equals("Benchmark")) {
                     Toast.makeText(ProcessOcrActivity.this, "Benchmark: Remote OCR has finished!", Toast.LENGTH_LONG).show();
                     remoteFinished = System.currentTimeMillis();
-                    remoteDelta = (remoteStart - remoteFinished) / 1000.0;
+                    remoteDelta = (remoteFinished - remoteStart);
                     remoteOcrDone = true;
                     startBenchmarkActivity();
                 } else {
