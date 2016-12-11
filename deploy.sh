@@ -11,6 +11,8 @@ SERVICE_FILE="${CONFIG_PATH}/mcc-2016-g15-p2-ce172c4f2841.json"
 export GOOGLE_APPLICATION_CREDENTIALS="${WD}/${SERVICE_FILE}"
 DOCKER_IMAGE="gcr.io/mcc-2016-g15-p2/ocr-server"
 CLUSTER_NAME="ocr-server"
+CLUSTER_MAKEFILE="${SERVER_PATH}/k8s-sidecar-edit/"
+ZONE="europe-west1-d"
 
 #color printing
 RED='\033[0;31m'
@@ -96,6 +98,21 @@ curl "https://www.duckdns.org/update?domains=openocranges&token=6ad8a0b3-7a22-49
 
 #create mongodb cluster
 
+# get cluster credential
+echo -e "\n\n${ORANGE}Getting cluster credential...${NC}"
+gcloud container clusters get-credentials $CLUSTER_NAME --zone=$ZONE 
+
+# create replica set
+echo -e "\n\n${ORANGE}Creating Mongo Cluster...${NC}"
+cd $CLUSTER_MAKEFILE
+a=1
+while [ $a -le 3 ]
+do
+  make add-replica
+  a=$(( a+1 ))
+done
+make create-null-service
+cd ../../
 
 #build android apk
 echo -e "\n\n${ORANGE}Building Android apk...${NC}"
