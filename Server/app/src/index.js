@@ -19,11 +19,26 @@ let upload = multer({
 	storage : memoryStorage
 });
 
+// for reading slave mode
+let options = {
+	db: {
+		readPreference: 'nearest',
+		slaveOk: true
+	},
+	replSet: {
+		replicaSet: 'rs0'
+	},
+	server: {
+		w: 2,
+		autoReconnect: true
+	}
+};
+
 // setup mongodb connection
 mongoose.Promise = global.Promise;
 mongoose.set('debug', true);
 if (process.env.MONGODB_URL) {
-	mongoose.connect(process.env.MONGODB_URL);
+	mongoose.connect(process.env.MONGODB_URL,options);
 } else {
 	mongoose.connect(config.database);
 }
