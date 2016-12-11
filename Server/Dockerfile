@@ -1,5 +1,4 @@
 FROM node:4
-ENV USE_SSL 1
 ENV MONGODB_URL mongodb://mongo-1,mongo-2,mongo-3:27017/OCR_USERS
 EXPOSE 8080
 COPY ./app/ .

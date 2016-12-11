@@ -80,7 +80,7 @@ echo -e "\n\n${ORANGE}Creating kubernetes deployment...${NC}"
 kubectl run ocr-server --image=$DOCKER_IMAGE --replicas=3 --port=8080
 
 echo -e "\n\n${ORANGE}Exposing kubernetes deployment...${NC}"
-kubectl expose deployment ocr-server --port=443 --target-port=8080 --type="LoadBalancer"
+kubectl expose deployment ocr-server --port=80 --target-port=8080 --type="LoadBalancer"
 
 #get IP and set duckdns
 echo -e "\n\n${ORANGE}Waiting for IP address to be assigned...${NC}"
