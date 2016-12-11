@@ -11,56 +11,74 @@ export default ({ config }, upload) => {
 	let ocr = Router();
 
 	ocr.post('/upload', check_user, upload.array('photos[]', 15), (req, res) => {
-		var transaction = new Transaction({
-			_user: req.user,
-			processed: false
+	    console.log('received transaction. Num images:'+req.files.length);
+	    var transaction = new Transaction({
+		_user: req.user,
+		processed: false
+	    });
+
+	    req.files.forEach(function(uFile) {
+		var image = new Image({
+		    _user: req.user,
+		    data: uFile.buffer
 		});
-
-		req.files.forEach(function(file) {
-			var image = new Image({
-				_user: req.user,
-				data: file.buffer
-			});
-			image.save();
-
-			var file = new File({
-				_transaction: transaction,
-				fileName: file.originalName,
-				extractedText: null,
-				error: null,
-				processingStarted: null,
-				processingFinished: null,
-				thumbnail: null,
-				image: image
-			});
-			file.save();
-
+		console.log('saving image: '+uFile.originalname);
+		image.save(function(err){
+		    if(err)throw err;
+		    
+		    console.log('image saved: '+uFile.originalname);
+		    var file = new File({
+			_transaction: transaction,
+			fileName: uFile.originalname,
+			extractedText: null,
+			error: null,
+			processingStarted: null,
+			processingFinished: null,
+			thumbnail: null,
+			image: image
+		    });
+		    console.log('saving file: '+uFile.originalname);
+		    file.save(function(err){
+			if(err)throw err;
+			
+			console.log('file saved: '+uFile.originalname);
+			
 			// Create thumbnail for the image
 			Jimp.read(image.data, (err, image) => {
-				image.scaleToFit(256, 256).getBuffer(Jimp.MIME_PNG, (err, buffer) => {
-					file.thumbnail = buffer;
-					file.save();
-				});
+			    image.scaleToFit(256, 256).getBuffer(Jimp.MIME_PNG, (err, buffer) => {
+				file.thumbnail = buffer;
+				file.save();
+				console.log('thumbnail generated: '+uFile.originalname);
+			    });
 			});
-
+			
 			transaction.files.push(file);
-		});
-
-		// Save transaction and start OCR crunch
-		transaction.save().then(() => {
-			transaction.populate('files', (err) => {
-				transaction.files.forEach(file => {
+			if(transaction.files.length == req.files.length){
+			    // Save transaction and start OCR crunch
+			    console.log('saving transaction');
+			    transaction.save().then(() => {
+				console.log('transaction saved');
+				transaction.populate('files', (err) => {
+				    
+				    transaction.files.forEach(file => {
 					process(transaction, file);
-				});
-			});
-		});
+				    });
+				});	
+			    });
 
-		res.json({
-			transaction: {
-				id: transaction._id,
-				href: '/ocr/transaction/' + transaction._id
+			    console.log('transaction id: '+transaction._id);
+			    res.json({
+				transaction: {
+				    id: transaction._id,
+				    href: '/ocr/transaction/' + transaction._id
+				}
+			    });			 
 			}
+		    });
 		});
+	    });
+	    
+	
 	});
 
 	ocr.get('/image/:id', check_user, (req, res) => {
@@ -142,64 +160,64 @@ export default ({ config }, upload) => {
 }
 
 function process(transaction, file) {
-	file.populate('image', (err) => {
-		if(err)
-			throw err;
-
-		// In practice this should never happen unless someone gives images ridiculously low TTL
-		if(file.image === null)
-		{
-			// Indicate that processing file failed to handle transaction completions properly
-			file.error = 'Failed to perform OCR on file, image not found in database.';
-			file.save();
-
-			checkCompletion(transaction);
-
-			return;
-		}
-
-		// Tesseract reads file from disk so create temporary file
-		let fileName = __dirname + '/' + file.image._id;
-		fs.writeFile(fileName, file.image.data);
-
-		file.processingStarted = Date.now();
-		// Start processing image, will return automatically when done
-		tesseract.process(fileName, (err, text) => {
-			if(err) {
-				fs.unlink(fileName);
-
-				file.error = 'Running tesseract failed: \'' + err + '\'';
-				file.processingFinished = Date.now();
-				file.save();
-			}
-			else {
-				fs.unlink(fileName);
-
-				file.extractedText = text;
-				file.processingFinished = Date.now();
-				file.save();
-			}
-
-			checkCompletion(transaction);
-		});
+    file.populate('image', (err) => {
+	if(err)
+	    throw err;
+	
+	// In practice this should never happen unless someone gives images ridiculously low TTL
+	if(file.image === null)
+	{
+	    // Indicate that processing file failed to handle transaction completions properly
+	    file.error = 'Failed to perform OCR on file, image not found in database.';
+	    file.save();
+	    
+	    checkCompletion(transaction);
+	    
+	    return;
+	}
+	
+	// Tesseract reads file from disk so create temporary file
+	let fileName = __dirname + '/' + file.image._id;
+	fs.writeFile(fileName, file.image.data);
+	
+	file.processingStarted = Date.now();
+	// Start processing image, will return automatically when done
+	tesseract.process(fileName, (err, text) => {
+	    if(err) {
+		fs.unlink(fileName);
+		
+		file.error = 'Running tesseract failed: \'' + err + '\'';
+		file.processingFinished = Date.now();
+		file.save();
+	    }
+	    else {
+		fs.unlink(fileName);
+		
+		file.extractedText = text;
+		file.processingFinished = Date.now();
+		file.save();
+	    }
+	    
+	    checkCompletion(transaction);
 	});
+    });
 }
 
 function checkCompletion(transaction) {
-	// Check if transaction finished by completing processing of this file
-	if(transaction.finishedAt !== null)
-		console.log('Transaction has already been finished');
-
-	// Transaction is completed if every file has been finished
-	let done = transaction.files.every(file => {
-		return file.processingFinished !== null;
-	});
-
-	if(done)
-	{
-		transaction.finishedAt = Date.now();
-		transaction.save();
-	}
+    // Check if transaction finished by completing processing of this file
+    if(transaction.finishedAt !== null)
+	console.log('Transaction has already been finished');
+    
+    // Transaction is completed if every file has been finished
+    let done = transaction.files.every(file => {
+	return file.processingFinished !== null;
+    });
+    
+    if(done)
+    {
+	transaction.finishedAt = Date.now();
+	transaction.save();
+    }
 }
 
 export function getTransactionJSON(transaction) {
