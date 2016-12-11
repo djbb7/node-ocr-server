@@ -10,7 +10,7 @@ CREATE_SERVICE=TRUE
 ENV=GoogleCloudPlatform
 
 # Default volume size on creation
-DISK_SIZE=100GB
+DISK_SIZE=200GB
 
 # GoogleCloudPlatform Specific Environment Variables
 ZONE=europe-west1-d
@@ -71,5 +71,8 @@ ifeq ($(ENV),AWS)
 endif
 
 create-null-service:
-	@echo 'Create null Service'
+	@echo 'Create control Service'
 	-kubectl create -f mongo-svc-null.yaml
+delete-null-service:
+	@echo 'Delete control Service'
+	-kubectl delete svc mongo-svc-null
