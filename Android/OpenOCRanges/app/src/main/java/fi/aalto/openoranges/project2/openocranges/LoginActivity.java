@@ -17,7 +17,6 @@ import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONObject;
 
@@ -186,8 +185,7 @@ public class LoginActivity extends AppCompatActivity {
         @Override
         protected Boolean doInBackground(Void... params) {
             //to make login easier, should be removed at the end of the project
-            String login_body = "{\"username\":\"" + "peterpan" + "\",\"password\":\"" + "dreamisover" + "\"}";
-            //String login_body = "{\"username\":\"" + mUsername + "\",\"password\":\"" + mPassword + "\"}";
+            String login_body = "{\"username\":\"" + mUsername + "\",\"password\":\"" + mPassword + "\"}";
 
 
 
