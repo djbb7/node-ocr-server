@@ -36,7 +36,7 @@ let options = {
 
 // setup mongodb connection
 mongoose.Promise = global.Promise;
-mongoose.set('debug', true);
+mongoose.set('debug', false);
 if (process.env.MONGODB_URL) {
 	mongoose.connect(process.env.MONGODB_URL,options);
 } else {
