@@ -2,7 +2,7 @@
 
 #location of things inside project folder
 SERVER_PATH=Server
-ANDROID_PATH=Android
+ANDROID_PATH=Android/OpenOCRanges
 CONFIG_PATH=config
 WD=`pwd`
 
@@ -51,7 +51,7 @@ echo -e "${NC}"
 gcloud auth activate-service-account proj-owner@mcc-2016-g15-p2.iam.gserviceaccount.com --key-file $SERVICE_FILE
 
 #authenticate kubernetes
-gcloud auth application-default login proj-owner@mcc-2016-g15-p2.iam.gserviceaccount.com --key-file $SERVICE_FILE
+#gcloud auth application-default login proj-owner@mcc-2016-g15-p2.iam.gserviceaccount.com --key-file $SERVICE_FILE
 
 # set gcloud project id
 gcloud config set project $PROJECT_ID
@@ -94,7 +94,7 @@ while true; do
 done;
 
 echo -e "\n\n${ORANGE}Setting IP to dynamic DNS...${NC}"
-curl "https://www.duckdns.org/update?domains=openocranges&token=6ad8a0b3-7a22-49da-91b0-05d5745565d5&ip=${IP}&verbose=true"
+curl "https://www.duckdns.org/update?domains=mcc2016g15p2&token=6ad8a0b3-7a22-49da-91b0-05d5745565d5&ip=${IP}&verbose=true"
 
 #create mongodb cluster
 
