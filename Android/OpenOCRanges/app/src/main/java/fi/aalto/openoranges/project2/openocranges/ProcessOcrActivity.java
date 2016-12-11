@@ -800,8 +800,12 @@ public class ProcessOcrActivity extends Activity {
                                 JSONArray the_json_array = myjson.getJSONArray("files");
                                 int size = the_json_array.length();
                                 arrays = new ArrayList<JSONObject>();
+                                remoteSingleTimes = new double[size];
+                                remoteSingleBytes = new int[size];
                                 for (int i = 0; i < size; i++) {
                                     JSONObject json_results = the_json_array.getJSONObject(i);
+                                    remoteSingleBytes[i] = json_results.length() + mPictureUriList[i].length();
+                                    remoteSingleTimes[i] = Double.parseDouble(json_results.getString("processingTime"));
                                     arrays.add(json_results);
                                 }
                                 JSONObject[] json = new JSONObject[arrays.size()];

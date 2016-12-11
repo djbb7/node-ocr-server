@@ -152,7 +152,7 @@ public class BenchmarkActivity extends AppCompatActivity {
                 "Minimum: " + mTimeFastLocal + " ms (" + mPictureFastLocal + "); Maximum: " + mTimeSlowLocal + " (" + mPictureSlowLocal + ")\n" +
                 "\n" +
                 "Remote\n" +
-                "Processing time: " + mTimeRemote*1000 + " (" + mMeanTimeRemote*1000 + ") ms\n" +
+                "Processing time: " + mTimeRemote + " (" + mMeanTimeRemote + ") ms\n" +
                 "Minimum: " + mTimeFastRemote*1000 + " ms (" + mPictureFastRemote + "); Maximum: " + mTimeSlowRemote*1000 + " (" + mPictureSlowRemote + ")\n" +
                 "Exchanged data: " + mDataExchange + " (" + mMeanDataExchange + ") bytes\n" +
                 "Minimum: " + mBytesMin + " bytes (" + mPictureMin + "); Maximum: " + mBytesMax + " bytes (" + mPictureMax + ")");
