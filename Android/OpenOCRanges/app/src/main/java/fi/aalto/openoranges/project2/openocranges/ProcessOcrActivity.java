@@ -417,64 +417,73 @@ public class ProcessOcrActivity extends Activity {
 
         mRetake.setEnabled(false);
         mProcessOcr.setEnabled(false);
-        lastImageToProcess_multiple_local = false;
-        localIntermediate = localStart;
-        int size = mPictureUriList.length;
-        localSingleTimes = new long[mPictureUriList.length];
-        String[] list = new String[mPictureUriList.length];
-        for (int i = 0; i < size; i++) {
-            if (i + 1 == size) {
-                lastImageToProcess_multiple_local = true;
-            }
-            File f;
-            if (mPictureUriList[i].startsWith("content://")) {
 
-                f = new File(saveURItoTmpFile(mPictureUriList[i], i));
-
-                list[i] = f.toURI().toString();
-            }
-
-            Bitmap bitm = BitmapFactory.decodeFile(Uri.parse(list[i]).getPath());
-            mPictureView.setImageBitmap(bitm);
-            final Bitmap bitmap = convertColorIntoBlackAndWhiteImage(bitm);
-
-            String result = mTessOCR.getOCRResult(bitmap).toLowerCase();
-            extractedText_multipleImages_local = extractedText_multipleImages_local + result;
-
-                if (mModus.equals("Local")) {
-                    if (lastImageToProcess_multiple_local == true) {
-                        lastImageToProcess_multiple_local = false;
-
-                        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                        mTimestamp = dateFormat.format(new Date());
-
-                        Intent j = new Intent(ProcessOcrActivity.this, ShowActivity.class);
-                        j.putExtra("mModus", mModus);
-                        j.putExtra("token", mToken);
-                        j.putExtra("timestamp",mTimestamp);
-                        j.putExtra("text", extractedText_multipleImages_local);
-                        j.putExtra("mPictureUriList", mPictureUriList);
-                        startActivity(j);
-                        finish();
+        Thread t = new Thread(new Runnable() {
+            public void run() {
+                lastImageToProcess_multiple_local = false;
+                localIntermediate = localStart;
+                int size = mPictureUriList.length;
+                localSingleTimes = new long[mPictureUriList.length];
+                String[] list = new String[mPictureUriList.length];
+                for (int i = 0; i < size; i++) {
+                    if (i + 1 == size) {
+                        lastImageToProcess_multiple_local = true;
                     }
-                } else {
-                    if (lastImageToProcess_multiple_local == true) {
-                        lastImageToProcess_multiple_local = false;
-                        localFinished = System.currentTimeMillis();
-                        localDelta = (localFinished - localStart);
-                        Toast.makeText(this, "Local OCR has finished!", Toast.LENGTH_SHORT).show();
-                        localOcrDone = true;
-                        localSingleTimes[i] = (localFinished-localIntermediate);
-                        startBenchmarkActivity();
+                    File f;
+                    if (mPictureUriList[i].startsWith("content://")) {
+
+                        f = new File(saveURItoTmpFile(mPictureUriList[i], i));
+
+                        list[i] = f.toURI().toString();
                     }
-                    else{
-                        localFinished = System.currentTimeMillis();
-                        localSingleTimes[i] = (localFinished-localIntermediate);
-                        localIntermediate = System.currentTimeMillis();
+
+                    final Bitmap bitm = BitmapFactory.decodeFile(Uri.parse(list[i]).getPath());
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mPictureView.setImageBitmap(bitm);
+                        }
+                    });
+                    final Bitmap bitmap = convertColorIntoBlackAndWhiteImage(bitm);
+
+                    String result = mTessOCR.getOCRResult(bitmap).toLowerCase();
+                    extractedText_multipleImages_local = extractedText_multipleImages_local + result;
+
+                    if (mModus.equals("Local")) {
+                        if (lastImageToProcess_multiple_local == true) {
+                            lastImageToProcess_multiple_local = false;
+
+                            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                            mTimestamp = dateFormat.format(new Date());
+
+                            Intent j = new Intent(ProcessOcrActivity.this, ShowActivity.class);
+                            j.putExtra("mModus", mModus);
+                            j.putExtra("token", mToken);
+                            j.putExtra("timestamp", mTimestamp);
+                            j.putExtra("text", extractedText_multipleImages_local);
+                            j.putExtra("mPictureUriList", mPictureUriList);
+                            startActivity(j);
+                            finish();
+                        }
+                    } else {
+                        if (lastImageToProcess_multiple_local == true) {
+                            lastImageToProcess_multiple_local = false;
+                            localFinished = System.currentTimeMillis();
+                            localDelta = (localFinished - localStart);
+                           // Toast.makeText(this, "Local OCR has finished!", Toast.LENGTH_SHORT).show();
+                            localOcrDone = true;
+                            localSingleTimes[i] = (localFinished - localIntermediate);
+                            startBenchmarkActivity();
+                        } else {
+                            localFinished = System.currentTimeMillis();
+                            localSingleTimes[i] = (localFinished - localIntermediate);
+                            localIntermediate = System.currentTimeMillis();
+                        }
                     }
+
                 }
-
-        }
+            }});
+        t.start();
     }
 
     private String saveURItoTmpFile(String contentURI, int i){
@@ -775,6 +784,7 @@ public class ProcessOcrActivity extends Activity {
                             JSONObject json_results = the_json_array.getJSONObject(i);
                             remoteSingleBytes[i] = json_results.toString().length() + getFileSizeFromUri(mPictureUriList[i]);
                             remoteSingleTimes[i] = Double.parseDouble(json_results.getString("processingTime"));
+                            remoteSingleTimes[i] = json_results.getDouble("processingTime");
                             arrays.add(json_results);
                         }
                         JSONObject[] json = new JSONObject[arrays.size()];
@@ -803,6 +813,8 @@ public class ProcessOcrActivity extends Activity {
                                     JSONObject json_results = the_json_array.getJSONObject(i);
                                     remoteSingleBytes[i] = json_results.toString().length() + getFileSizeFromUri(mPictureUriList[i]);
                                     remoteSingleTimes[i] = Double.parseDouble(json_results.getString("processingTime"));
+                                    remoteSingleTimes[i] = json_results.getDouble("processingTime");
+
                                     arrays.add(json_results);
                                 }
                                 JSONObject[] json = new JSONObject[arrays.size()];

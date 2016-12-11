@@ -117,4 +117,18 @@ cd ../../
 #build android apk
 echo -e "\n\n${ORANGE}Building Android apk...${NC}"
 
-#
+#build apk
+echo -e "${ORANGE}[Using gradle to get dependencies, it may take a while]${NC}"
+read -n 1 -s -p "Press any key to start build..."
+
+cd $ANDROID_PATH
+chmod +x gradlew
+{
+    ./gradlew assemble &&
+    #move apk to results directory
+    mv app/build/outputs/apk/app-debug.apk ../mcc_fall_2016_g15.apk &&
+    echo -e "${GREEN}apk generated: ${WD}/mcc_fall_2016_g15.apk${NC}"
+} || {
+    echo -e "${RED}could not build apk${NC}"
+}
+cd $WD
