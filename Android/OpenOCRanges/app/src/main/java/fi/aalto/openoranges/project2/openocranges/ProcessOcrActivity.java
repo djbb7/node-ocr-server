@@ -19,6 +19,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.system.ErrnoException;
 import android.util.Log;
@@ -27,8 +28,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.theartofdev.edmodo.cropper.CropImageView;
+import android.database.Cursor;
+import android.provider.OpenableColumns;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -58,7 +59,7 @@ public class ProcessOcrActivity extends Activity {
     private Button mAddPicture;
     private Button mProcessOcr;
 
-    private CropImageView mPictureView;
+    private ImageView mPictureView;
     private TextView mMultipleImagesView;
     private Uri mPictureUri;
     private String[] mPictureUriList;
@@ -180,16 +181,17 @@ public class ProcessOcrActivity extends Activity {
         dir.mkdirs();
 
         //View for taken picture
-        mPictureView = (CropImageView) findViewById(R.id.picture_view);
+        mPictureView = (ImageView) findViewById(R.id.picture_view);
         mMultipleImagesView = (TextView) findViewById(R.id.multiple_images);
         if (getIntent().getStringExtra("mOrientation").equals("1")) {
             mPictureUri = Uri.parse(getIntent().getStringExtra("mPictureUri"));
             mPictureUriList = new String[1];
             mPictureUriList[0] = mPictureUri.toString();
-            mPictureView.setImageUriAsync(mPictureUri);
+            mPictureView.setImageURI(mPictureUri);
+
         } else if (mPictureUriList != null && mPictureUriList.length == 1) {
             mPictureUri = Uri.parse(mPictureUriList[0]);
-            mPictureView.setImageUriAsync(mPictureUri);
+            mPictureView.setImageURI(mPictureUri);
         } else if (mPictureUriList != null && mPictureUriList.length > 1){
             mMultipleImagesView.setText(mPictureUriList.length + " images selected\n"+"Modus: "+mModus);
             mMultipleImagesView.setVisibility(View.VISIBLE);
@@ -197,7 +199,7 @@ public class ProcessOcrActivity extends Activity {
         }
         else{
             mPictureUri = Uri.parse(mPictureUriList[0]);
-            mPictureView.setImageUriAsync(mPictureUri);
+            mPictureView.setImageURI(mPictureUri);
         }
 
 
@@ -221,7 +223,7 @@ public class ProcessOcrActivity extends Activity {
             public void onClick(View view) {
                 //if remote modus is chosen do ocr processing on server
                 if (mModus.equals("Remote")) {
-                    Toast.makeText(ProcessOcrActivity.this, "Local OCR proceeding...", Toast.LENGTH_LONG).show();
+                    Toast.makeText(ProcessOcrActivity.this, "Remote OCR processing...", Toast.LENGTH_LONG).show();
                     showProgress(true);
                     mRetake.setEnabled(false);
                     mProcessOcr.setEnabled(false);
@@ -231,11 +233,7 @@ public class ProcessOcrActivity extends Activity {
                     try {
                         //if User selects only one Picture do this otherwise go to else-part
                         if (mPictureUriList.length < 2) {
-                            Bitmap cropped = mPictureView.getCroppedImage(500, 500);
-                            if (cropped != null) {
-                                mPictureView.setImageBitmap(cropped);
-                            }
-                            doOCR(convertColorIntoBlackAndWhiteImage(cropped));
+                            doOCR();
                         } else {
                             lastImageToProcess_multiple_local = false;
 
@@ -298,11 +296,7 @@ public class ProcessOcrActivity extends Activity {
         try {
             //if User selects only one Picture do this otherwise go to else-part
             if (mPictureUriList.length < 2) {
-                Bitmap cropped = mPictureView.getCroppedImage(500, 500);
-                if (cropped != null) {
-                    mPictureView.setImageBitmap(cropped);
-                }
-                doOCR(convertColorIntoBlackAndWhiteImage(cropped));
+                doOCR();
             } else {
                 lastImageToProcess_multiple_local = false;
                 doOCRMultiple();
@@ -348,7 +342,7 @@ public class ProcessOcrActivity extends Activity {
 */
     }
 
-    public void doOCR(final Bitmap bitmap) {
+    public void doOCR() {
         showProgress(true);
         mRetake.setEnabled(false);
         mProcessOcr.setEnabled(false);
@@ -356,11 +350,27 @@ public class ProcessOcrActivity extends Activity {
         Thread t = new Thread(new Runnable() {
             public void run() {
 
-                final String result = mTessOCR.getOCRResult(bitmap).toLowerCase();
+               // File f = new File(saveURItoTmpFile(mPictureUri, 0));
+
+                InputStream is = null;
+                Bitmap bitmap = null;
+                try {
+                    is = getContentResolver().openInputStream(mPictureUri);
+                    bitmap = BitmapFactory.decodeStream(is);
+
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+
+                final Bitmap bitm = bitmap;
+
+                final String result = mTessOCR.getOCRResult(bitm).toLowerCase();
 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+
+                        mPictureView.setImageBitmap(bitm);
 
                         if (result != null) {
                             extractedText_multipleImages_local += result;
@@ -404,6 +414,7 @@ public class ProcessOcrActivity extends Activity {
 
     public void doOCRMultiple() {
         showProgress(true);
+
         mRetake.setEnabled(false);
         mProcessOcr.setEnabled(false);
         lastImageToProcess_multiple_local = false;
@@ -418,37 +429,8 @@ public class ProcessOcrActivity extends Activity {
             File f;
             if (mPictureUriList[i].startsWith("content://")) {
 
-                Uri uri = Uri.parse(mPictureUriList[i]);
+                f = new File(saveURItoTmpFile(mPictureUriList[i], i));
 
-                InputStream is = null;
-                try {
-                    is = getContentResolver().openInputStream(uri);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-
-
-                File targetFile = new File(getCacheDir().getAbsolutePath() + "/targetFile" + i + ".tmp");
-                OutputStream outStream = null;
-                try {
-                    outStream = new FileOutputStream(targetFile);
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                }
-
-                byte[] buffer = new byte[8 * 1024];
-                int bytesRead;
-                try {
-                    while ((bytesRead = is.read(buffer)) != -1) {
-                        outStream.write(buffer, 0, bytesRead);
-                    }
-                    is.close();
-                    outStream.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                f = new File(getCacheDir().getAbsolutePath() + "/targetFile" + i + ".tmp");
                 list[i] = f.toURI().toString();
             }
 
@@ -495,6 +477,39 @@ public class ProcessOcrActivity extends Activity {
         }
     }
 
+    private String saveURItoTmpFile(String contentURI, int i){
+        Uri uri = Uri.parse(contentURI);
+
+        InputStream is = null;
+        try {
+            is = getContentResolver().openInputStream(uri);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+
+        File targetFile = new File(getCacheDir().getAbsolutePath() + "/targetFile" + i + ".tmp");
+        OutputStream outStream = null;
+        try {
+            outStream = new FileOutputStream(targetFile);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        byte[] buffer = new byte[8 * 1024];
+        int bytesRead;
+        try {
+            while ((bytesRead = is.read(buffer)) != -1) {
+                outStream.write(buffer, 0, bytesRead);
+            }
+            is.close();
+            outStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return getCacheDir().getAbsolutePath() + "/targetFile" + i + ".tmp";
+    }
 
     private Bitmap convertColorIntoBlackAndWhiteImage(Bitmap orginalBitmap) {
         ColorMatrix colorMatrix = new ColorMatrix();
@@ -523,28 +538,10 @@ public class ProcessOcrActivity extends Activity {
             // For API >= 23 we need to check specifically that we have permissions to read external storage,
             // but we don't know if we need to for the URI so the simplest is to try open the stream and see if we post error.
             boolean requirePermissions = false;
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                    checkSelfPermission(android.Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED &&
-                    isUriRequiresPermissions(imageUri)) {
-
-                // request permissions and handle the result in onRequestPermissionsResult()
-                requirePermissions = true;
-                mPictureUri = imageUri;
-                requestPermissions(new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, 0);
-            }
 
             if (!requirePermissions) {
-                mPictureView.setImageUriAsync(imageUri);
+                mPictureView.setImageURI(imageUri);
             }
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String permissions[], int[] grantResults) {
-        if (mPictureUri != null && grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-            mPictureView.setImageUriAsync(mPictureUri);
-        } else {
-            Toast.makeText(this, "Required permissions are not granted", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -720,7 +717,7 @@ public class ProcessOcrActivity extends Activity {
 
                 mGetResultsTask = new getResultsTask();
                 mGetResultsTask.execute((Void) null);
-                Toast.makeText(ProcessOcrActivity.this, "Proceeding image...", Toast.LENGTH_LONG).show();
+                Toast.makeText(ProcessOcrActivity.this, "Processing image...", Toast.LENGTH_LONG).show();
 
             } else {
                 Toast.makeText(ProcessOcrActivity.this, message, Toast.LENGTH_LONG).show();
@@ -776,7 +773,7 @@ public class ProcessOcrActivity extends Activity {
                         remoteSingleBytes = new int[size];
                         for (int i = 0; i < size; i++) {
                             JSONObject json_results = the_json_array.getJSONObject(i);
-                            remoteSingleBytes[i] = json_results.length() + mPictureUriList[i].length();
+                            remoteSingleBytes[i] = json_results.toString().length() + getFileSizeFromUri(mPictureUriList[i]);
                             remoteSingleTimes[i] = Double.parseDouble(json_results.getString("processingTime"));
                             arrays.add(json_results);
                         }
@@ -804,7 +801,7 @@ public class ProcessOcrActivity extends Activity {
                                 remoteSingleBytes = new int[size];
                                 for (int i = 0; i < size; i++) {
                                     JSONObject json_results = the_json_array.getJSONObject(i);
-                                    remoteSingleBytes[i] = json_results.length() + mPictureUriList[i].length();
+                                    remoteSingleBytes[i] = json_results.toString().length() + getFileSizeFromUri(mPictureUriList[i]);
                                     remoteSingleTimes[i] = Double.parseDouble(json_results.getString("processingTime"));
                                     arrays.add(json_results);
                                 }
@@ -939,6 +936,8 @@ public class ProcessOcrActivity extends Activity {
             int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
             mListView.setVisibility(show ? View.GONE : View.VISIBLE);
+
+            mMultipleImagesView.setVisibility(View.GONE);
             mListView.animate().setDuration(shortAnimTime).alpha(
                     show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
                 @Override
@@ -961,5 +960,24 @@ public class ProcessOcrActivity extends Activity {
             mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
             mListView.setVisibility(show ? View.GONE : View.VISIBLE);
         }
+    }
+
+    public int getFileSizeFromUri(String sUri){
+        Uri uri = Uri.parse(sUri);
+
+        try {
+            ParcelFileDescriptor fd = getContentResolver().openFileDescriptor(uri, "r");
+            long size = fd.getStatSize();
+            if (size < Integer.MIN_VALUE || size > Integer.MAX_VALUE) {
+                throw new IllegalArgumentException
+                        (size + " cannot be cast to int without changing its value.");
+            }
+            return (int) size;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+
+        return 0;
     }
 }

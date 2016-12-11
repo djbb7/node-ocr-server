@@ -171,12 +171,9 @@ public final class CropImage {
         allIntents.addAll(getGalleryIntents(packageManager, includeDocuments));
 
         Intent target;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            target = new Intent();
-        } else {
+
             target = allIntents.get(allIntents.size() - 1);
             allIntents.remove(allIntents.size() - 1);
-        }
 
         // Create a chooser from the main  intent
         Intent chooserIntent = Intent.createChooser(target, title);
@@ -246,10 +243,7 @@ public final class CropImage {
      * question</a>.
      */
     public static boolean isExplicitCameraPermissionRequired(@NonNull Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            return hasPermissionInManifest(context, "android.permission.CAMERA") &&
-                    context.checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED;
-        }
+
         return false;
     }
 
@@ -317,9 +311,7 @@ public final class CropImage {
      * @return true - required permission are not granted, false - either no need for permissions or they are granted
      */
     public static boolean isReadExternalStoragePermissionsRequired(@NonNull Context context, @NonNull Uri uri) {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.M &&
-                context.checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED &&
-                isUriRequiresPermissions(context, uri);
+        return false;
     }
 
     /**

@@ -1,9 +1,5 @@
 [
     {
-        "merged": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/C:\\Users\\Neil\\mcc-2016-g15-p2\\Android\\OpenOCRanges\\cropper\\build\\intermediates\\res\\merged\\debug\\menu\\crop_image_menu.xml",
-        "source": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/C:\\Users\\Neil\\mcc-2016-g15-p2\\Android\\OpenOCRanges\\cropper\\src\\main\\res\\menu\\crop_image_menu.xml"
-    },
-    {
         "merged": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/res/merged/debug/menu/crop_image_menu.xml",
         "source": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/src/main/res/menu/crop_image_menu.xml"
     }

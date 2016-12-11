@@ -1,48 +1,5 @@
 [
     {
-        "outputFile": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/C:\\Users\\Neil\\mcc-2016-g15-p2\\Android\\OpenOCRanges\\cropper\\build\\intermediates\\incremental\\mergeReleaseResources\\merged.dir\\values-w600dp-v13\\values-w600dp-v13.xml",
-        "map": [
-            {
-                "to": {
-                    "startLine": 2,
-                    "startColumn": 4,
-                    "startOffset": 55,
-                    "endColumn": 63,
-                    "endOffset": 114
-                },
-                "from": {
-                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/C:\\Users\\Neil\\mcc-2016-g15-p2\\Android\\OpenOCRanges\\cropper\\build\\intermediates\\exploded-aar\\com.android.support\\appcompat-v7\\23.2.1\\res\\values-w600dp-v13\\values-w600dp-v13.xml",
-                    "position": {
-                        "startLine": 2,
-                        "startColumn": 4,
-                        "startOffset": 55,
-                        "endColumn": 63,
-                        "endOffset": 114
-                    }
-                }
-            },
-            {
-                "to": {
-                    "startLine": 3,
-                    "startColumn": 4,
-                    "startOffset": 119,
-                    "endColumn": 54,
-                    "endOffset": 169
-                },
-                "from": {
-                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/C:\\Users\\Neil\\mcc-2016-g15-p2\\Android\\OpenOCRanges\\cropper\\build\\intermediates\\exploded-aar\\com.android.support\\appcompat-v7\\23.2.1\\res\\values-w600dp-v13\\values-w600dp-v13.xml",
-                    "position": {
-                        "startLine": 3,
-                        "startColumn": 4,
-                        "startOffset": 119,
-                        "endColumn": 54,
-                        "endOffset": 169
-                    }
-                }
-            }
-        ]
-    },
-    {
         "outputFile": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/incremental/mergeReleaseResources/merged.dir/values-w600dp-v13/values-w600dp-v13.xml",
         "map": [
             {
@@ -54,13 +11,13 @@
                     "endOffset": 114
                 },
                 "from": {
-                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.2.1/res/values-w600dp-v13/values-w600dp-v13.xml",
+                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.1/res/values-w600dp/values-w600dp.xml",
                     "position": {
-                        "startLine": 2,
+                        "startLine": 4,
                         "startColumn": 4,
-                        "startOffset": 55,
+                        "startOffset": 294,
                         "endColumn": 63,
-                        "endOffset": 114
+                        "endOffset": 353
                     }
                 }
             },
@@ -73,13 +30,13 @@
                     "endOffset": 169
                 },
                 "from": {
-                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.2.1/res/values-w600dp-v13/values-w600dp-v13.xml",
+                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.1/res/values-w600dp/values-w600dp.xml",
                     "position": {
-                        "startLine": 3,
+                        "startLine": 5,
                         "startColumn": 4,
-                        "startOffset": 119,
+                        "startOffset": 358,
                         "endColumn": 54,
-                        "endOffset": 169
+                        "endOffset": 408
                     }
                 }
             }

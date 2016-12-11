@@ -7,7 +7,7 @@
     <uses-sdk
         android:maxSdkVersion="22"
         android:minSdkVersion="10"
-        android:targetSdkVersion="23" />
+        android:targetSdkVersion="22" />
           android:versionCode="1"
           android:versionName="1.0" >
 

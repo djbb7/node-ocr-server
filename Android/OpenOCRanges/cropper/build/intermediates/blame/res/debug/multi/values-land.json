@@ -1,124 +1,5 @@
 [
     {
-        "outputFile": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/C:\\Users\\Neil\\mcc-2016-g15-p2\\Android\\OpenOCRanges\\cropper\\build\\intermediates\\incremental\\mergeDebugResources\\merged.dir\\values-land\\values-land.xml",
-        "map": [
-            {
-                "to": {
-                    "startLine": 2,
-                    "startColumn": 4,
-                    "startOffset": 55,
-                    "endColumn": 61,
-                    "endOffset": 112
-                },
-                "from": {
-                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/C:\\Users\\Neil\\mcc-2016-g15-p2\\Android\\OpenOCRanges\\cropper\\build\\intermediates\\exploded-aar\\com.android.support\\appcompat-v7\\23.2.1\\res\\values-land\\values-land.xml",
-                    "position": {
-                        "startLine": 2,
-                        "startColumn": 4,
-                        "startOffset": 55,
-                        "endColumn": 61,
-                        "endOffset": 112
-                    }
-                }
-            },
-            {
-                "to": {
-                    "startLine": 3,
-                    "startColumn": 4,
-                    "startOffset": 117,
-                    "endColumn": 71,
-                    "endOffset": 184
-                },
-                "from": {
-                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/C:\\Users\\Neil\\mcc-2016-g15-p2\\Android\\OpenOCRanges\\cropper\\build\\intermediates\\exploded-aar\\com.android.support\\appcompat-v7\\23.2.1\\res\\values-land\\values-land.xml",
-                    "position": {
-                        "startLine": 3,
-                        "startColumn": 4,
-                        "startOffset": 117,
-                        "endColumn": 71,
-                        "endOffset": 184
-                    }
-                }
-            },
-            {
-                "to": {
-                    "startLine": 4,
-                    "startColumn": 4,
-                    "startOffset": 189,
-                    "endColumn": 69,
-                    "endOffset": 254
-                },
-                "from": {
-                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/C:\\Users\\Neil\\mcc-2016-g15-p2\\Android\\OpenOCRanges\\cropper\\build\\intermediates\\exploded-aar\\com.android.support\\appcompat-v7\\23.2.1\\res\\values-land\\values-land.xml",
-                    "position": {
-                        "startLine": 4,
-                        "startColumn": 4,
-                        "startOffset": 189,
-                        "endColumn": 69,
-                        "endOffset": 254
-                    }
-                }
-            },
-            {
-                "to": {
-                    "startLine": 5,
-                    "startColumn": 4,
-                    "startOffset": 259,
-                    "endColumn": 63,
-                    "endOffset": 318
-                },
-                "from": {
-                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/C:\\Users\\Neil\\mcc-2016-g15-p2\\Android\\OpenOCRanges\\cropper\\build\\intermediates\\exploded-aar\\com.android.support\\appcompat-v7\\23.2.1\\res\\values-land\\values-land.xml",
-                    "position": {
-                        "startLine": 5,
-                        "startColumn": 4,
-                        "startOffset": 259,
-                        "endColumn": 63,
-                        "endOffset": 318
-                    }
-                }
-            },
-            {
-                "to": {
-                    "startLine": 6,
-                    "startColumn": 4,
-                    "startOffset": 323,
-                    "endColumn": 70,
-                    "endOffset": 389
-                },
-                "from": {
-                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/C:\\Users\\Neil\\mcc-2016-g15-p2\\Android\\OpenOCRanges\\cropper\\build\\intermediates\\exploded-aar\\com.android.support\\appcompat-v7\\23.2.1\\res\\values-land\\values-land.xml",
-                    "position": {
-                        "startLine": 6,
-                        "startColumn": 4,
-                        "startOffset": 323,
-                        "endColumn": 70,
-                        "endOffset": 389
-                    }
-                }
-            },
-            {
-                "to": {
-                    "startLine": 7,
-                    "startColumn": 4,
-                    "startOffset": 394,
-                    "endColumn": 67,
-                    "endOffset": 457
-                },
-                "from": {
-                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/C:\\Users\\Neil\\mcc-2016-g15-p2\\Android\\OpenOCRanges\\cropper\\build\\intermediates\\exploded-aar\\com.android.support\\appcompat-v7\\23.2.1\\res\\values-land\\values-land.xml",
-                    "position": {
-                        "startLine": 7,
-                        "startColumn": 4,
-                        "startOffset": 394,
-                        "endColumn": 67,
-                        "endOffset": 457
-                    }
-                }
-            }
-        ]
-    },
-    {
         "outputFile": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/incremental/mergeDebugResources/merged.dir/values-land/values-land.xml",
         "map": [
             {
@@ -130,13 +11,13 @@
                     "endOffset": 112
                 },
                 "from": {
-                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.2.1/res/values-land/values-land.xml",
+                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.1/res/values-land/values-land.xml",
                     "position": {
-                        "startLine": 2,
+                        "startLine": 4,
                         "startColumn": 4,
-                        "startOffset": 55,
+                        "startOffset": 291,
                         "endColumn": 61,
-                        "endOffset": 112
+                        "endOffset": 348
                     }
                 }
             },
@@ -149,13 +30,13 @@
                     "endOffset": 184
                 },
                 "from": {
-                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.2.1/res/values-land/values-land.xml",
+                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.1/res/values-land/values-land.xml",
                     "position": {
-                        "startLine": 3,
+                        "startLine": 7,
                         "startColumn": 4,
-                        "startOffset": 117,
+                        "startOffset": 590,
                         "endColumn": 71,
-                        "endOffset": 184
+                        "endOffset": 657
                     }
                 }
             },
@@ -168,13 +49,13 @@
                     "endOffset": 254
                 },
                 "from": {
-                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.2.1/res/values-land/values-land.xml",
+                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.1/res/values-land/values-land.xml",
                     "position": {
-                        "startLine": 4,
+                        "startLine": 10,
                         "startColumn": 4,
-                        "startOffset": 189,
+                        "startOffset": 908,
                         "endColumn": 69,
-                        "endOffset": 254
+                        "endOffset": 973
                     }
                 }
             },
@@ -183,17 +64,17 @@
                     "startLine": 5,
                     "startColumn": 4,
                     "startOffset": 259,
-                    "endColumn": 63,
-                    "endOffset": 318
+                    "endColumn": 69,
+                    "endOffset": 324
                 },
                 "from": {
-                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.2.1/res/values-land/values-land.xml",
+                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.1/res/values-land/values-land.xml",
                     "position": {
-                        "startLine": 5,
+                        "startLine": 11,
                         "startColumn": 4,
-                        "startOffset": 259,
-                        "endColumn": 63,
-                        "endOffset": 318
+                        "startOffset": 978,
+                        "endColumn": 69,
+                        "endOffset": 1043
                     }
                 }
             },
@@ -201,18 +82,18 @@
                 "to": {
                     "startLine": 6,
                     "startColumn": 4,
-                    "startOffset": 323,
-                    "endColumn": 70,
-                    "endOffset": 389
+                    "startOffset": 329,
+                    "endColumn": 63,
+                    "endOffset": 388
                 },
                 "from": {
-                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.2.1/res/values-land/values-land.xml",
+                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.1/res/values-land/values-land.xml",
                     "position": {
-                        "startLine": 6,
+                        "startLine": 14,
                         "startColumn": 4,
-                        "startOffset": 323,
-                        "endColumn": 70,
-                        "endOffset": 389
+                        "startOffset": 1285,
+                        "endColumn": 63,
+                        "endOffset": 1344
                     }
                 }
             },
@@ -220,18 +101,37 @@
                 "to": {
                     "startLine": 7,
                     "startColumn": 4,
-                    "startOffset": 394,
-                    "endColumn": 67,
-                    "endOffset": 457
+                    "startOffset": 393,
+                    "endColumn": 70,
+                    "endOffset": 459
                 },
                 "from": {
-                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.2.1/res/values-land/values-land.xml",
+                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.1/res/values-land/values-land.xml",
                     "position": {
-                        "startLine": 7,
+                        "startLine": 17,
                         "startColumn": 4,
-                        "startOffset": 394,
+                        "startOffset": 1595,
+                        "endColumn": 70,
+                        "endOffset": 1661
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 8,
+                    "startColumn": 4,
+                    "startOffset": 464,
+                    "endColumn": 67,
+                    "endOffset": 527
+                },
+                "from": {
+                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.1/res/values-land/values-land.xml",
+                    "position": {
+                        "startLine": 18,
+                        "startColumn": 4,
+                        "startOffset": 1666,
                         "endColumn": 67,
-                        "endOffset": 457
+                        "endOffset": 1729
                     }
                 }
             }

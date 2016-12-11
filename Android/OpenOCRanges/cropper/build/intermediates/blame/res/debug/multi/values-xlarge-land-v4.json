@@ -1,29 +1,5 @@
 [
     {
-        "outputFile": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/C:\\Users\\Neil\\mcc-2016-g15-p2\\Android\\OpenOCRanges\\cropper\\build\\intermediates\\incremental\\mergeDebugResources\\merged.dir\\values-xlarge-land-v4\\values-xlarge-land-v4.xml",
-        "map": [
-            {
-                "to": {
-                    "startLine": 2,
-                    "startColumn": 4,
-                    "startOffset": 55,
-                    "endColumn": 63,
-                    "endOffset": 114
-                },
-                "from": {
-                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/C:\\Users\\Neil\\mcc-2016-g15-p2\\Android\\OpenOCRanges\\cropper\\build\\intermediates\\exploded-aar\\com.android.support\\appcompat-v7\\23.2.1\\res\\values-xlarge-land-v4\\values-xlarge-land-v4.xml",
-                    "position": {
-                        "startLine": 2,
-                        "startColumn": 4,
-                        "startOffset": 55,
-                        "endColumn": 63,
-                        "endOffset": 114
-                    }
-                }
-            }
-        ]
-    },
-    {
         "outputFile": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/incremental/mergeDebugResources/merged.dir/values-xlarge-land-v4/values-xlarge-land-v4.xml",
         "map": [
             {
@@ -35,13 +11,13 @@
                     "endOffset": 114
                 },
                 "from": {
-                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/23.2.1/res/values-xlarge-land-v4/values-xlarge-land-v4.xml",
+                    "file": "/Users/danielbruzual/Desktop/Aalto/mob/proj2/Android/OpenOCRanges/cropper/build/intermediates/exploded-aar/com.android.support/appcompat-v7/22.2.1/res/values-xlarge-land/values-xlarge-land.xml",
                     "position": {
-                        "startLine": 2,
+                        "startLine": 4,
                         "startColumn": 4,
-                        "startOffset": 55,
+                        "startOffset": 299,
                         "endColumn": 63,
-                        "endOffset": 114
+                        "endOffset": 358
                     }
                 }
             }

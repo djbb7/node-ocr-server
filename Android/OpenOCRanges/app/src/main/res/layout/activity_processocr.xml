@@ -20,19 +20,19 @@
             android:layout_height="match_parent"
             android:id="@+id/main_screen"
             android:layout_marginBottom="?android:attr/actionBarSize">
-        <com.theartofdev.edmodo.cropper.CropImageView
-            android:id="@+id/picture_view"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            <ImageView
+                android:id="@+id/picture_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
 
-        <TextView
-            android:id="@+id/multiple_images"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:textSize="20dp"
-            android:gravity="center"
-            android:visibility="invisible"
-            />
+            <TextView
+                android:id="@+id/multiple_images"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:textSize="20dp"
+                android:gravity="center"
+                android:visibility="invisible"
+                />
         </RelativeLayout>
 
         <LinearLayout

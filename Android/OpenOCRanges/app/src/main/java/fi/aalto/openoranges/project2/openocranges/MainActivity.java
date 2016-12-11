@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Html;
@@ -49,7 +50,7 @@ import okhttp3.Response;
 import okhttp3.Route;
 
 public class MainActivity extends AppCompatActivity {
-    private ImageButton mReadButton;
+    private FloatingActionButton mReadButton;
     private ImageButton mRefreshButton;
     private Button mLogoutButton;
     private TimeoutOperation mSleeper = null;
@@ -102,7 +103,7 @@ public class MainActivity extends AppCompatActivity {
         //post Token from previous activity
         mToken = getIntent().getStringExtra("token");
 
-        mReadButton = (ImageButton) findViewById(R.id.read);
+        mReadButton = (FloatingActionButton) findViewById(R.id.read);
         mReadButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -144,11 +145,6 @@ public class MainActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
 
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            // No explanation needed, we can request the permission.
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
-            return;
-        }
         showProgress(true);
         mHistoryList = new HistoryList();
         mHistoryList.execute((Void) null);
@@ -484,28 +480,6 @@ public class MainActivity extends AppCompatActivity {
             // and hide the relevant UI components.
             mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
             mListView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
-    }
-
-    //Permission handling
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-
-        if (requestCode == MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE) {
-            for (int i = 0; i < permissions.length; i++) {
-                String permission = permissions[i];
-                int grantResult = grantResults[i];
-
-                if (permission.equals(Manifest.permission.READ_EXTERNAL_STORAGE)) {
-                    if (grantResult == PackageManager.PERMISSION_GRANTED) {
-
-                    } else {
-
-                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_READ_EXTERNAL_STORAGE);
-                    }
-                }
-            }
         }
     }
 

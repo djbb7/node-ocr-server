@@ -19,8 +19,8 @@ import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.view.menu.MenuBuilder;
-import android.support.v7.view.menu.MenuPopupHelper;
+/*import android.support.v7.view.menu.MenuBuilder;
+import android.support.v7.view.menu.MenuPopupHelper;*/
 import android.support.v7.widget.PopupMenu;
 import android.system.ErrnoException;
 import android.util.Log;
@@ -53,7 +53,7 @@ public class TakePictureActivity extends AppCompatActivity {
     private Camera mCamera;
     private ImageButton mBack;
     private ImageButton mOptions;
-    private ImageButton mGallery;
+    private FloatingActionButton mGallery;
     private TextView mModus;
     private int MY_PERMISSIONS_REQUEST_CAMERA;
     private int MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE;
@@ -82,11 +82,7 @@ public class TakePictureActivity extends AppCompatActivity {
 
     }
 
-
-    protected void loadActivity(){
-        setContentView(R.layout.activity_takepicture);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); // Make to run your application only in portrait mode
-
+    protected void startCamera(){
         try {
             mCamera = Camera.open();//you can use open(int) to use different cameras
         } catch (Exception e) {
@@ -98,6 +94,13 @@ public class TakePictureActivity extends AppCompatActivity {
             FrameLayout camera_view = (FrameLayout) findViewById(R.id.camera_view);
             camera_view.addView(mCameraView);//add the SurfaceView to the layout
         }
+    }
+
+    protected void loadActivity(){
+        setContentView(R.layout.activity_takepicture);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT); // Make to run your application only in portrait mode
+
+        startCamera();
 
         //post Token from previous activity
         mToken = getIntent().getStringExtra("token");
@@ -129,7 +132,7 @@ public class TakePictureActivity extends AppCompatActivity {
         mOptions.bringToFront();
 
         //Button to choose picture out of gallery
-        mGallery = (ImageButton) findViewById(R.id.importGallery);
+        mGallery = (FloatingActionButton) findViewById(R.id.importGallery);
         mGallery.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -291,21 +294,6 @@ public class TakePictureActivity extends AppCompatActivity {
     protected void onStart() {
         super.onStart();
         loadActivity();
-        //Write on storage permission
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-
-            // No explanation needed, we can request the permission.
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, MY_PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
-            return;
-        }
-        //Camera permission
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-
-            // No explanation needed, we can request the permission.
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, MY_PERMISSIONS_REQUEST_CAMERA);
-            return;
-        }
-
 
     }
 
@@ -432,9 +420,10 @@ public class TakePictureActivity extends AppCompatActivity {
             }
         });
 
-        MenuPopupHelper menuHelper = new MenuPopupHelper(this, (MenuBuilder) popupMenu.getMenu(), v);
+        popupMenu.show();
+    /*    MenuPopupHelper menuHelper = new MenuPopupHelper(this, (MenuBuilder) popupMenu.getMenu(), v);
         menuHelper.setForceShowIcon(true);
-        menuHelper.show();
+        menuHelper.show();*/
     }
 
 
@@ -458,8 +447,9 @@ public class TakePictureActivity extends AppCompatActivity {
             mCamera.setParameters(params);
             //post the holder and set this class as the callback, so we can post camera data here
             mHolder = getHolder();
+            mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
             mHolder.addCallback(this);
-            mHolder.setType(SurfaceHolder.SURFACE_TYPE_NORMAL);
+
         }
 
         @Override
@@ -487,6 +477,7 @@ public class TakePictureActivity extends AppCompatActivity {
 
             //now, recreate the camera preview
             try {
+                mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
                 mCamera.setPreviewDisplay(mHolder);
                 mCamera.setDisplayOrientation(90);
 
@@ -505,63 +496,5 @@ public class TakePictureActivity extends AppCompatActivity {
         }
     }
 
-    //Permission handling
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-        if (requestCode == MY_PERMISSIONS_REQUEST_CAMERA) {
-            for (int i = 0; i < permissions.length; i++) {
-                String permission = permissions[i];
-                int grantResult = grantResults[i];
-
-                if (permission.equals(Manifest.permission.CAMERA)) {
-                    if (grantResult == PackageManager.PERMISSION_GRANTED) {
-                        //Action for permission granted
-                        try {
-                            mCamera = Camera.open();//you can use open(int) to use different cameras
-                        } catch (Exception e) {
-                            Log.d("ERROR", "Failed to post camera: " + e.getMessage());
-                        }
-
-                        if (mCamera != null) {
-                            CameraView mCameraView = new CameraView(this, mCamera);//create a SurfaceView to show camera data
-                            FrameLayout camera_view = (FrameLayout) findViewById(R.id.camera_view);
-                            camera_view.addView(mCameraView);//add the SurfaceView to the layout
-                        }
-
-                    } else {
-                        //default action
-                        Toast.makeText(TakePictureActivity.this, "Camera is necessary for OCR processing!", Toast.LENGTH_SHORT).show();
-                        Intent j = new Intent(TakePictureActivity.this, MainActivity.class);
-                        startActivity(j);
-                        finish();
-                    }
-                }
-
-                if (permission.equals(Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
-                    if (grantResult == PackageManager.PERMISSION_GRANTED) {
-                        //Action for permission granted
-                        try {
-                            mCamera = Camera.open();//you can use open(int) to use different cameras
-                        } catch (Exception e) {
-                            Log.d("ERROR", "Failed to post camera: " + e.getMessage());
-                        }
-
-                        if (mCamera != null) {
-                            CameraView mCameraView = new CameraView(this, mCamera);//create a SurfaceView to show camera data
-                            FrameLayout camera_view = (FrameLayout) findViewById(R.id.camera_view);
-                            camera_view.addView(mCameraView);//add the SurfaceView to the layout
-                        }
-                    } else {
-                        //default action
-                        Toast.makeText(TakePictureActivity.this, "Permission is necessary for OCR processing!", Toast.LENGTH_SHORT).show();
-                        Intent j = new Intent(TakePictureActivity.this, MainActivity.class);
-                        startActivity(j);
-                        finish();
-                    }
-                }
-            }
-        }
-    }
 }

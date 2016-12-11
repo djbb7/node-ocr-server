@@ -1,15 +1,16 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion "24.0.3"
+    compileSdkVersion 22
+    buildToolsVersion "22.0.1"
     defaultConfig {
         applicationId "fi.aalto.openoranges.project2.openocranges"
         minSdkVersion 15
-        targetSdkVersion 24
+        targetSdkVersion 22
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        multiDexEnabled true
     }
     buildTypes {
         release {
@@ -17,6 +18,7 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
 }
 
 dependencies {
@@ -24,16 +26,27 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:24.2.1'
-    compile 'com.android.support:design:24.2.1'
-    compile 'com.google.android.gms:play-services:9.6.1'
+    compile 'com.android.support:appcompat-v7:22.2.1'
+    compile 'com.android.support:design:22.2.1'
+    compile 'com.google.android.gms:play-services:6.5.87'
     testCompile 'junit:junit:4.12'
-    compile 'com.facebook.fresco:fresco:0.14.1'
+    compile ('com.facebook.fresco:fresco:0.14.1'){
+        exclude group: 'com.android.support', module: 'support-compat'
+        exclude group: 'com.android.support', module: 'support-annotations'
+        exclude group: 'com.android.support', module: 'support-core-utils'
+    }
     // If your app supports Android versions before Ice Cream Sandwich (API level 14)
-    compile 'com.facebook.fresco:animated-base-support:0.14.1'
+    compile ('com.facebook.fresco:animated-base-support:0.14.1'){
+        exclude group: 'com.android.support', module: 'support-compat'
+        exclude group: 'com.android.support', module: 'support-annotations'
+        exclude group: 'com.android.support', module: 'support-core-utils'
+    }
 
     compile 'com.rmtheis:tess-two:6.1.1'
-    compile project(path: ':cropper')
 
-    compile "com.facebook.fresco:imagepipeline-okhttp3:0.14.1"
+    compile ("com.facebook.fresco:imagepipeline-okhttp3:0.14.1"){
+        exclude group: 'com.android.support', module: 'support-compat'
+        exclude group: 'com.android.support', module: 'support-annotations'
+        exclude group: 'com.android.support', module: 'support-core-utils'
+    }
 }
