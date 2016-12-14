@@ -39,7 +39,6 @@ else
     echo -e "\n\n${ORANGE}Installing docker...${NC}"
     # curl -fsSL https://get.docker.com/ | sh
     sudo apt-get install docker.io
-    echo -e "\n\n${ORANGE}Docker installed...${NC}"
     
     sudo service docker start
     WHO=`whoami`
@@ -47,7 +46,7 @@ else
 
     echo -e "\n\n${ORANGE}Docker installed...${NC}"
     echo -e "${ORANGE}Please logout and log back in, and rerun script...${NC}"
-    
+    exit 0
 
 fi
 
@@ -64,7 +63,7 @@ else
 fi
 
 #install kubernetes
-if hash gcloud 2>/dev/null; then
+if hash kubectl 2>/dev/null; then
     echo -e "\n\n${ORANGE}kubectl already installed...${NC}"
 else
     echo -e "\n\n${ORANGE}Installing kubectl...${NC}"
