@@ -29,23 +29,57 @@ echo -e "${NC}"
 ######################
 # install dependencies
 
+#update repositories
+sudo apt-get update
+
 #install docker
+if hash docker 2>/dev/null; then
+    echo -e "\n\n${ORANGE}Docker already installed...${NC}"
+else
+    echo -e "\n\n${ORANGE}Installing docker...${NC}"
+    # curl -fsSL https://get.docker.com/ | sh
+    sudo apt-get install docker.io
+    echo -e "\n\n${ORANGE}Docker installed...${NC}"
+    
+    sudo service docker start
+    WHO=`whoami`
+    sudo usermod -aG docker $WHO
+
+    echo -e "\n\n${ORANGE}Docker installed...${NC}"
+    echo -e "${ORANGE}Please logout and log back in, and rerun script...${NC}"
+    
+
+fi
 
 #install gcloud
-#apt-get update
-#apt-get install python
-#wget https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-sdk-137.0.1-linux-x86_64.tar.gz
-#tar xvzf google-cloud-sdk-137.0.1-linux-x86_64.tar.gz
-#cd google-cloud-sdk
-#./install.sh
-#cd ..
-#source .bashrc
+if hash gcloud 2>/dev/null; then
+    echo -e "\n\n${ORANGE}gcloud already installed...${NC}"
+else
+    echo -e "\n\n${ORANGE}Installing gcloud...${NC}"
+    export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)"
+    echo "deb http://packages.cloud.google.com/apt $CLOUD_SDK_REPO main" | sudo tee /etc/apt/sources.list.d/google-cloud-sdk.list
+    curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
+    sudo apt-get update && sudo apt-get install google-cloud-sdk
+    echo -e "\n\n${ORANGE}gcloud installed...${NC}"
+fi
 
 #install kubernetes
-# gcloud components install kubectl
+if hash gcloud 2>/dev/null; then
+    echo -e "\n\n${ORANGE}kubectl already installed...${NC}"
+else
+    echo -e "\n\n${ORANGE}Installing kubectl...${NC}"
+    #gcloud components install kubectl
+    curl -LO https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl
+    chmod +x ./kubectl
+    sudo mv ./kubectl /usr/local/bin/kubectl
+    echo -e "\n\n${ORANGE}kubectl installed...${NC}"
+fi
 
 ######################
 # configure
+
+#set gcloud account
+gcloud config set account mcc.fall.2016.g15@gmail.com
 
 #authenticate gcloud
 gcloud auth activate-service-account proj-owner@mcc-2016-g15-p2.iam.gserviceaccount.com --key-file $SERVICE_FILE
